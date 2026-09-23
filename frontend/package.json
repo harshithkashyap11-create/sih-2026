@@ -16,6 +16,8 @@
     "typecheck": "tsc --noEmit --pretty false",
     "test": "vitest",
     "i18n:check": "node scripts/check-i18n.mjs",
+    "content:release-check": "node scripts/check-content-release.mjs",
+    "content:release-test": "node --test scripts/check-content-release.test.mjs",
     "copy:check": "node scripts/check-patient-copy.mjs",
     "api:gen": "orval --config orval.config.ts"
   },

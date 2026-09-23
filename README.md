@@ -126,6 +126,9 @@ results, voice setup, all-role browser checks and remaining limitations.
 The development Compose setup is not suitable for production. See
 [the engineering review and deployment runbook](ENGINEERING_REVIEW.md) for current
 release blockers, verified workflows, and the required deployment sequence.
+[Executable release-gate checks](docs/release-gates.md) cover production service
+probes, HTTPS staging smoke checks, backups/restore, device speech, and human
+translation/content sign-off.
 `docker-compose.prod.yml` builds a static frontend and runs Gunicorn/Celery against
 externally provisioned PostgreSQL, Redis, private S3 and SMTP, behind HTTPS ingress.
 It has not yet been built and validated against those real production services.
