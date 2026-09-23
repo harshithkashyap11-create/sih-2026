@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiClient } from "../../api/client";
+import { dayInTimezone } from "../../db/reminders";
 interface Log {
   id: string;
   mood?: string;
@@ -21,7 +22,7 @@ export function WellnessTab({
   const [kind, setKind] = useState("mood");
   const [editing, setEditing] = useState<Log | null>(null);
   const [mood, setMood] = useState("ok");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => dayInTimezone());
   const [bed, setBed] = useState("22:00");
   const [wake, setWake] = useState("07:00");
   const [quality, setQuality] = useState(3);

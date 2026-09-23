@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -30,7 +30,14 @@ class ReportView(APIView):
             end = parse_date(request.query_params.get("to", default_end.isoformat()))
         except (ValueError, TypeError):
             return Response({"detail": "Use valid dates in YYYY-MM-DD format."}, status=400)
-        if not start or not end or start > end or (end - start).days > 365:
+        if (
+            not start
+            or not end
+            or start <= date.min
+            or end >= date.max
+            or start > end
+            or (end - start).days > 365
+        ):
             return Response({"detail": "Choose a period of up to 366 days."}, status=400)
         pdf = (
             emergency_pdf(patient, authenticated_user(request))

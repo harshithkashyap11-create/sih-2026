@@ -6,7 +6,7 @@ Update this file at the end of every task (`/finish-task` does it). Keep it shor
 Phase 10 — Reports and polish
 
 ## In flight
-- None. T109–T112 are complete; Phase 10 implementation is finished.
+- None. T060–T112 deep review is complete; mentor acceptance and publication readiness remain.
 
 ## Done
 | Task | Date | Commit | Notes |
@@ -62,7 +62,7 @@ Phase 10 — Reports and polish
 | T061 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Assignment-history inlines, end reasons, transfer action, actor attribution, audit trail, and immediate revocation through active scoping. |
 | T062 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Live admin counts, catalog controls and regional scope, read-only patient difficulty, force logout, account lock, and PIN-reset actions. |
 | T063 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Immutable searchable/filterable audit browser and audited export action. |
-| T064 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | TOTP-gated admin site, idempotent demo authenticator enrollment, setup documentation, and Phase 6 demo script. |
+| T064 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Admin portal uses the later password/CSRF/Admin-role release policy; historical django-otp artifacts remain, but the original TOTP-gating card is superseded. |
 | T090–T094 | 2026-09-16 | `feat(regional): complete T090-T094 content packs` | Regional content catalogue/admin workflow, pack endpoint/cache, game integration, caregiver preferences, and regional seeds. |
 
 | T070–T094 follow-up | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Offline sync/replay and account isolation, voice routing/settings, content import/admin hardening, regional demo media, real-backend offline regression and persistent local startup. |
@@ -133,3 +133,9 @@ trained artifact was supplied, and its feature/export contract has critical
 inconsistencies. A corrected optional offline export/runtime boundary is provided;
 missing/incompatible model dependencies/artifacts hold difficulty. No claim of
 validated RF inference or clinical benefit is made.
+
+## T060–T112 deep review (2026-09-23)
+
+Reviewed 35 task cards across T060–T064, T070–T076, T080–T084, T090–T094, and T100–T112. No cards exist for T065–T069, T077–T079, or T085–T089. The implementation is ready for mentor acceptance on synthetic data. Review evidence: [docs/reviews/T060-T112.md](docs/reviews/T060-T112.md).
+
+Verification: Ruff, CI-scoped strict mypy (248 files), migration check, 258 PostgreSQL tests plus 1 skip, 800 frontend tests, 13 backend deployment-audit tests, 6 frontend deployment-audit tests, frontend lint/typecheck, locale/review-provenance and patient-copy checks, and production PWA build passed. Remaining release gates are native-language/content approval, real S3/SMTP/mobile speech/HTTPS staging, backups/restore, and privacy/security review.

@@ -11,6 +11,20 @@ const game: GameDefinitionDto = { key: "visual_search", name: "Visual Search", m
 const event: PerformanceEvent = { game_id: game.key, difficulty: 1, accuracy: 1, reaction_time_ms: 1000, errors: 0, hints_used: 0, completed: false, early_exit: false, session_duration_sec: 30, rounds_completed: 3, timestamp: new Date().toISOString() };
 beforeEach(() => { vi.clearAllMocks(); mocks.offline.mockReturnValue(false); mocks.persist.mockResolvedValue(undefined); mocks.api.mockResolvedValue({ adjustment: 1 }); });
 describe("authenticated shared game transport", () => {
+  it("persists duration safety flags and stops before another round", async () => {
+    const onFatigue = vi.fn();
+    const client = createIntegratedTransport("patient-fixture", game, false, { sessionCapMinutes: 1, onFatigue });
+    await client.submitMetrics({ ...event, session_duration_sec: 60 });
+    expect(onFatigue).toHaveBeenCalledOnce();
+    expect(mocks.persist.mock.calls[0]?.[2]).toMatchObject({ metrics: { completed: false, fatigue_flags: ["session_cap"] } });
+    expect(mocks.api).not.toHaveBeenCalled();
+  });
+  it("records a session-cap exit even before the first checkpoint", async () => {
+    const client = createIntegratedTransport("patient-fixture", game);
+    await client.exit("session_cap");
+    expect(mocks.persist).toHaveBeenCalledOnce();
+    expect(mocks.persist.mock.calls[0]?.[2]).toMatchObject({ metrics: { fatigue_flags: ["session_cap"], completed: false } });
+  });
   it("applies real backend round responses and holds on unavailable or invalid inference", async () => {
     const client = createIntegratedTransport("patient-fixture", game);
     expect(await client.submitMetrics(event)).toBe(1);

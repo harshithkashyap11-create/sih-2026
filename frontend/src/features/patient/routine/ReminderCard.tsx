@@ -22,6 +22,7 @@ export function ReminderCard({
       <div>
         <p className="text-lg font-bold">
           {new Date(reminder.scheduled_at).toLocaleTimeString([], {
+            timeZone: CARE_TIMEZONE,
             hour: "numeric",
             minute: "2-digit",
           })}
@@ -62,3 +63,4 @@ export function ReminderCard({
     </Card>
   );
 }
+import { CARE_TIMEZONE } from "../../../db/reminders";

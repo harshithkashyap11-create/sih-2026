@@ -211,6 +211,11 @@ export function route(
       [/(?:telugu|తెలుగు)/u, "te"],
       [/(?:manipuri|meitei)/u, "mni"],
       [/(?:mizo)/u, "lus"],
+      [/(?:bodo|बड़ो)/u, "brx"],
+      [/(?:khasi)/u, "kha"],
+      [/(?:garo)/u, "grt"],
+      [/(?:nepali|नेपाली)/u, "ne"],
+      [/(?:kokborok)/u, "trp"],
       [/(?:english|ইংৰাজী|ইংরেজি|अंग्रेज़ी|inglés)/u, "en"],
     ];
     const selected = choices.find(([pattern]) => pattern.test(text));

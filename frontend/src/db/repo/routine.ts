@@ -12,12 +12,17 @@ import { createOutboxEntry, isFakeOffline } from "../outbox";
 export type ReminderAction = "taken" | "later" | "skipped" | "help";
 export type Reminder = Omit<CachedReminder, "patientId">;
 export type Medication = Omit<CachedMedication, "patientId">;
+export function isCurrentMedication(medicine: Medication, day = dayInTimezone()): boolean {
+  return medicine.active !== false && (!medicine.start_date || medicine.start_date <= day)
+    && (!medicine.end_date || medicine.end_date >= day);
+}
 
 interface PatientList {
   results: Array<{ id: string }>;
 }
 
 export interface RoutineRepository {
+  getCaregiverContact?(this: void): Promise<{ name: string; phone: string } | null>;
   getToday(this: void, signal?: AbortSignal): Promise<Reminder[]>;
   getMedications(this: void, signal?: AbortSignal): Promise<Medication[]>;
   respond(reminderId: string, action: ReminderAction): Promise<void>;
@@ -34,6 +39,11 @@ async function patientId(): Promise<string> {
 }
 
 export class DexieRoutineRepository implements RoutineRepository {
+  async getCaregiverContact(): Promise<{ name: string; phone: string } | null> {
+    if (isFakeOffline() || !navigator.onLine) return null;
+    const id = await patientId();
+    return apiClient(`/api/v1/patients/${id}/primary-contact/`, { method: "GET" });
+  }
   async getToday(signal?: AbortSignal): Promise<Reminder[]> {
     signal?.throwIfAborted();
     const id = await patientId();
@@ -78,7 +88,7 @@ export class DexieRoutineRepository implements RoutineRepository {
     signal?.throwIfAborted();
     const id = await patientId();
     signal?.throwIfAborted();
-    const cached = await db.medications.where("patientId").equals(id).toArray();
+    const cached = (await db.medications.where("patientId").equals(id).toArray()).filter((item) => isCurrentMedication(item));
     if (isFakeOffline() || !navigator.onLine) return cached;
     try {
       const items = await apiClient<Medication[]>(
@@ -86,10 +96,11 @@ export class DexieRoutineRepository implements RoutineRepository {
         { method: "GET", signal },
       );
       signal?.throwIfAborted();
-      await db.medications.bulkPut(
-        items.map((item) => ({ ...item, patientId: id })),
-      );
-      return items;
+      await db.transaction("rw", db.medications, async () => {
+        await db.medications.where("patientId").equals(id).delete();
+        await db.medications.bulkPut(items.map((item) => ({ ...item, patientId: id })));
+      });
+      return items.filter((item) => isCurrentMedication(item));
     } catch (error) {
       signal?.throwIfAborted();
       if (cached.length) return cached;

@@ -102,8 +102,8 @@ export class DDAClient {
    * @param {Object} [options.queue]
    */
   constructor(options = {}) {
-    this.roundEndpoint = options.roundEndpoint ?? null;
-    this.sessionEndpoint = options.sessionEndpoint ?? null;
+    this.roundEndpoint = options.roundEndpoint ?? `/api/dda/round/`;
+    this.sessionEndpoint = options.sessionEndpoint ?? `/api/dda/session/`;
     this.fetchImpl = options.fetchImpl
       ?? (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
     this.getHeaders = options.getHeaders ?? (() => ({}));
@@ -132,6 +132,7 @@ export class DDAClient {
     try {
       const payload = await this.#post(this.roundEndpoint, metrics);
       const adjustment = parseAdjustment(payload);
+      try {
       if (adjustment === null) {
         return { adjustment: KEEP, source: 'fallback', reason: 'unreadable_response' };
       }

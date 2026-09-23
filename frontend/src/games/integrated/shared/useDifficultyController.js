@@ -12,7 +12,8 @@
  *   { difficulty_delta } | { delta } | { data: { adjustment } }
  * Any rejection, timeout or unparseable value is treated as 0 (no change).
  */
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useContext, useRef, useState } from 'react';
+import { GameSafetyContext } from './GameSafetyContext.js';
 
 export const MIN_DIFFICULTY = 1;
 export const MAX_DIFFICULTY = 5;
@@ -43,6 +44,8 @@ export default function useDifficultyController({
   max = MAX_DIFFICULTY,
   onAdjustment,
 }) {
+  const { maxDifficulty } = useContext(GameSafetyContext);
+  max = Math.min(max, maxDifficulty);
   const [difficulty, setDifficultyState] = useState(() => clampDifficulty(initialDifficulty, min, max));
   const [lastAdjustment, setLastAdjustment] = useState(0);
   const [syncState, setSyncState] = useState('idle'); // idle | sending | ok | offline

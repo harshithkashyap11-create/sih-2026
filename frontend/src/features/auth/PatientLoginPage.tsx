@@ -7,7 +7,7 @@ import {
   clearOfflineFailures,
   offlineLockedUntil,
   recordOfflineFailure,
-  storeOfflineSecrets,
+  OfflinePinRecoveryRequired,
   unlockOffline,
   lockOfflineStorage,
 } from "../../db/crypto";
@@ -50,6 +50,8 @@ export function PatientLoginPage() {
   const [pin, setPin] = useState("");
   const [messageKey, setMessageKey] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [recoveryPin, setRecoveryPin] = useState("");
+  const [needsRecovery, setNeedsRecovery] = useState(false);
 
   useEffect(() => {
     void getMeta(LOGIN_ID_KEY).then((value) =>
@@ -62,15 +64,22 @@ export function PatientLoginPage() {
     setSubmitting(true);
     setMessageKey(null);
     try {
-      const session = await patientLogin({
+      const credentials = {
         login_id: loginId.trim(),
         pin: nextPin,
         device_id: deviceId(),
-      });
-      await storeOfflineSecrets(nextPin, session.refresh, session.user);
+      };
+      if (needsRecovery) await patientLogin(credentials, recoveryPin);
+      else await patientLogin(credentials);
       await setMeta(LOGIN_ID_KEY, loginId.trim());
       void navigate("/patient", { replace: true });
     } catch (error) {
+      if (error instanceof OfflinePinRecoveryRequired || (needsRecovery && !(error instanceof ApiError))) {
+        setNeedsRecovery(true);
+        setMessageKey("auth.pinRecoveryHelp");
+        setPin("");
+        return;
+      }
       const code = errorCode(error);
       if (code === "request_not_completed") {
         const lockedUntil = await offlineLockedUntil();
@@ -163,6 +172,10 @@ export function PatientLoginPage() {
         onBackspace={() => setPin((value) => value.slice(0, -1))}
         onDigit={addDigit}
       />
+      {needsRecovery && <label className="space-y-2 font-bold">
+        <span>{t("auth.previousDevicePin")}</span>
+        <input type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={recoveryPin} onChange={(event) => setRecoveryPin(event.target.value.replace(/\D/g, ""))} />
+      </label>}
       <Link to="/login/user">{t("registration.passwordLogin")}</Link>
       <Link to="/register">{t("registration.create")}</Link>
     </main>

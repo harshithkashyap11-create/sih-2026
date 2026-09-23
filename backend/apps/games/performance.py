@@ -54,7 +54,8 @@ def record_performance(patient: PatientProfile, data: dict[str, Any]) -> dict[st
         completed=not data["early_exit"] and data["rounds_completed"] > 0,
         challengeMode=False,
         guestMode=False,
-        fatigueFlagged=False,
+        fatigueFlagged=bool(data.get("fatigue_flags"))
+        or data["session_duration_sec"] >= (patient.session_cap_minutes or 20) * 60,
     )
     try:
         result = next_difficulty(
@@ -106,6 +107,8 @@ def record_performance(patient: PatientProfile, data: dict[str, Any]) -> dict[st
         target = max(game.min_level, current - 1)
     if state and state.locked_by_doctor:
         target = current
+    if summary.fatigueFlagged:
+        target = min(current, target)
     target = max(game.min_level, min(5, game.max_level, cap, target))
     # A cumulative session checkpoint may use the same prior history repeatedly.
     # Allow only one adaptive change per session, rather than promoting every round.
@@ -115,9 +118,12 @@ def record_performance(patient: PatientProfile, data: dict[str, Any]) -> dict[st
     if any(row.decision.get("adjustment", 0) != 0 for row in earlier):
         target = current
     adjustment = max(-1, min(1, target - current))
+    # Clinical safety bounds take precedence over the one-step adaptive limit.
+    difficulty = max(game.min_level, min(cap, game.max_level, 5, current + adjustment))
+    adjustment = difficulty - current
     decision = {
         "adjustment": adjustment,
-        "difficulty": current + adjustment,
+        "difficulty": difficulty,
         "engine_version": ENGINE_VERSION,
         "reason": result.change.reasonCode if result else "engine_unavailable",
     }

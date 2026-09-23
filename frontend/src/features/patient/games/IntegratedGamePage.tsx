@@ -17,6 +17,7 @@ import { createSeededRng } from "../../../games/engine/types";
 import { useTts } from "../../../shared/hooks/useTts";
 import { currentPatient } from "./GamesPage";
 import { PrivateImage } from "../../../shared/ui/PrivateImage";
+import { GameSafetyContext } from "../../../games/integrated/shared/GameSafetyContext";
 import "../../../games/integrated/shared/games.css";
 import "../../../games/integrated/shared/games7to12.css";
 import "../../../games/integrated/shared/host.css";
@@ -29,9 +30,12 @@ export function IntegratedGamePage({ gameKey }: { gameKey: string }) {
     patientId: string;
     game: GameDefinitionDto;
     level: number;
+    maxDifficulty: number;
+    sessionCapMinutes: number;
     useMemoriesInQuiz: boolean;
   } | null>(null);
   const [failed, setFailed] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const entry = catalogByKey(gameKey);
   const guestMode =
     new URLSearchParams(window.location.search).get("practice") === "true";
@@ -50,6 +54,8 @@ export function IntegratedGamePage({ gameKey }: { gameKey: string }) {
           1,
           Math.min(
             5,
+            game.max_level,
+            patient.maxDifficultyLevel ?? 5,
             state.capLevel ?? 5,
             !state.lockedByDoctor && requested && Number.isFinite(requested)
               ? Math.round(requested)
@@ -61,6 +67,8 @@ export function IntegratedGamePage({ gameKey }: { gameKey: string }) {
             patientId: patient.id,
             game,
             level,
+            maxDifficulty: Math.min(5, game.max_level, state.capLevel ?? 5, patient.maxDifficultyLevel ?? 5),
+            sessionCapMinutes: patient.sessionCapMinutes,
             useMemoriesInQuiz: patient.useMemoriesInQuiz ?? false,
           });
       })
@@ -74,7 +82,10 @@ export function IntegratedGamePage({ gameKey }: { gameKey: string }) {
   const transport = useMemo(
     () =>
       data
-        ? createIntegratedTransport(data.patientId, data.game, guestMode)
+        ? createIntegratedTransport(data.patientId, data.game, guestMode, {
+            sessionCapMinutes: data.sessionCapMinutes,
+            onFatigue: () => setSessionEnded(true),
+          })
         : null,
     [data, guestMode],
   );
@@ -132,20 +143,27 @@ export function IntegratedGamePage({ gameKey }: { gameKey: string }) {
     },
     [transport],
   );
+  useEffect(() => {
+    if (!data || !transport) return;
+    const timer = window.setTimeout(() => {
+      setSessionEnded(true);
+      void transport.exit("session_cap").catch(() => undefined);
+    }, data.sessionCapMinutes * 60_000);
+    return () => window.clearTimeout(timer);
+  }, [data, transport]);
   if (failed || !entry?.component)
     return <p role="status">{t("games.unavailable")}</p>;
   if (!data || !transport) return <p role="status">{t("games.loading")}</p>;
+  if (sessionEnded) return <section><p>{t("confused.comfort")}</p><button type="button" onClick={() => void navigate("/patient/games")}>{t("games.common.backToGames")}</button></section>;
   const Component = entry.component;
   return (
     <section className="integrated-game">
-      {i18n.resolvedLanguage !== "en" && (
-        <p role="status">{t("games.translationFallback")}</p>
-      )}
       {i18n.resolvedLanguage === "en" && gameKey !== "personal_memory" && (
         <p role="status">{t("games.demoContent")}</p>
       )}
       {guestMode && <p role="status">{t("games.practiceBanner")}</p>}
       {gameKey === "personal_memory" && <p>{t("games.personalNotice")}</p>}
+      <GameSafetyContext.Provider value={{ maxDifficulty: data.maxDifficulty }}>
       <Component
         difficulty={data.level}
         initialDifficulty={data.level}
@@ -168,6 +186,7 @@ export function IntegratedGamePage({ gameKey }: { gameKey: string }) {
           void transport.submitSession(metrics).catch(() => undefined);
         }}
       />
+      </GameSafetyContext.Provider>
     </section>
   );
 }

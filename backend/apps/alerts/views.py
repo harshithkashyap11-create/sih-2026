@@ -82,7 +82,11 @@ class AlertListView(APIView):
         patient_id = request.query_params.get("patient")
         alert_status = request.query_params.get("status")
         if patient_id:
-            queryset = queryset.filter(patient_id=UUID(patient_id))
+            try:
+                parsed_id = UUID(patient_id)
+            except (ValueError, TypeError, AttributeError):
+                return Response({"patient": ["Use a valid patient UUID."]}, status=400)
+            queryset = queryset.filter(patient_id=parsed_id)
         if alert_status:
             queryset = queryset.filter(status=alert_status)
         return Response(AlertSerializer(queryset, many=True).data)

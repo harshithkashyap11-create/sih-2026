@@ -12,6 +12,11 @@ const voiceFallbacks: Record<VoiceLanguage, readonly string[]> = {
   te: ["te-IN", "te"],
   mni: ["mni-IN", "mni"],
   lus: ["lus-IN", "lus"],
+  brx: ["brx-IN", "brx"],
+  kha: ["kha-IN", "kha"],
+  grt: ["grt-IN", "grt"],
+  ne: ["ne-IN", "ne"],
+  trp: ["trp-IN", "trp"],
 };
 
 export class BrowserTextToSpeech implements TextToSpeech {

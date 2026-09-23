@@ -23,6 +23,8 @@ import {
   offlineLockedUntil,
   recordOfflineFailure,
   storeOfflineSecrets,
+  changeOfflinePin,
+  OfflinePinRecoveryRequired,
   unlockOffline,
   updateEncryptedRefreshToken,
 } from "./crypto";
@@ -51,6 +53,17 @@ test("stores an encrypted refresh token that only the correct PIN unlocks", asyn
   expect(state.values.get("refreshTokenEncrypted")).not.toContain(
     "refresh-token",
   );
+});
+
+test("reset PIN preserves the old data key until explicit recovery", async () => {
+  await storeOfflineSecrets("1234", "first", patient);
+  const original = state.values.get("pinVerifier");
+  await expect(storeOfflineSecrets("5678", "new", patient)).rejects.toBeInstanceOf(OfflinePinRecoveryRequired);
+  expect(state.values.get("pinVerifier")).toBe(original);
+  await changeOfflinePin("1234", "5678", patient.id);
+  await storeOfflineSecrets("5678", "new", patient);
+  expect(await unlockOffline("1234")).toBeNull();
+  expect(await unlockOffline("5678")).toEqual({ refreshToken: "new", user: patient });
 });
 
 test("re-encrypts a rotated refresh token for the next offline unlock", async () => {

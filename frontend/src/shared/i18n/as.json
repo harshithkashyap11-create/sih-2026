@@ -18,6 +18,8 @@
     "welcome": "স্মৃতি আৰু দৈনন্দিন সহায়ৰ বাবে এটা শান্ত ঠাই।"
   },
   "auth": {
+    "previousDevicePin": "আগৰ ডিভাইচ PIN",
+    "pinRecoveryHelp": "সাঁচি থোৱা তথ্য ৰাখিবলৈ তলত আগৰ ডিভাইচ PIN দিয়ক, তাৰ পিছত কীপেডত নতুন PIN দিয়ক। আগৰ PIN নাজানিলে যত্নকাৰীৰ সহায় লওক বা আন ডিভাইচত প্ৰৱেশ কৰক। তথ্য মচা হোৱা নাই।",
     "back": "পিছলৈ",
     "emailOrPhone": "ইমেইল বা ফোন",
     "password": "পাছৱৰ্ড",
@@ -109,11 +111,14 @@
     }
   },
   "medicines": {
+    "askCaregiver": "{{name}}ক সোধক",
     "title": "মোৰ ঔষধ",
     "nextDose": "পৰৱৰ্তী পালি",
     "askPriya": "যত্ন লোৱা ব্যক্তিক সোধক"
   },
   "memories": {
+    "photoUnavailable": "ফটো উপলব্ধ নহয়। পুনৰ চেষ্টা কৰিব পাৰে।",
+    "retryPhoto": "ফটো পুনৰ চেষ্টা কৰক",
     "title": "মোৰ স্মৃতি",
     "loading": "অলপ সময়…",
     "empty": "এতিয়া ইয়াত একো নাই।",
@@ -168,6 +173,9 @@
   },
   "games": {
     "title": "খেল",
+    "catalogSummary": "{{count}}টা বৌদ্ধিক খেল",
+    "adaptiveSummary": "অভিযোজিত কঠিনতা (DDA)-ই শুদ্ধতা, উত্তৰৰ সময়, সহায়তা আৰু বিশ্ৰামৰ সংকেত অনুসৰি খেলটো কোমলভাৱে সলনি কৰে। চিকিৎসকৰ সীমা সদায় মানি চলা হয়।",
+    "adaptiveBadge": "অভিযোজিত কঠিনতা",
     "challenge": "আজি অলপ প্ৰত্যাহ্বান ল'ব বিচাৰে নে?",
     "loading": "খেল সাজু কৰি আছে…",
     "round": "{{total}}টা পৰ্যায়ৰ {{current}} নম্বৰ পৰ্যায়",
@@ -366,6 +374,35 @@
     "question": "{{name}} এ সুধিছে: আপুনি ঠিক আছে নে?",
     "okay": "মই ঠিক আছোঁ",
     "help": "মোক সহায় লাগে"
+  },
+  "gameCatalog": {
+    "tea_garden_attention": {
+      "description": "চাহপাতত টিপক, আন বস্তু এৰাই চলক।"
+    },
+    "bihu_rhythm_recall": {
+      "description": "ছন্দ শুনক, তাৰ পিছত একে ছন্দত টিপক।"
+    },
+    "daily_life_sequencing": {
+      "description": "দৈনন্দিন কামবোৰ সঠিক ক্ৰমত সজাওক।"
+    },
+    "familiar_place_recall": {
+      "description": "ছবিত দেখুওৱা চিনাকি ঠাই বাছক।"
+    },
+    "who_is_this": {
+      "description": "ফটোখন চাই ব্যক্তিজনক চিনাক্ত কৰক।"
+    },
+    "word_pairs": {
+      "description": "সম্পৰ্ক থকা শব্দবোৰ মিলাওক।"
+    },
+    "festival_calendar": {
+      "description": "প্ৰতিটো উৎসৱ ইয়াৰ ঋতুৰ সৈতে মিলাওক।"
+    },
+    "sound_match": {
+      "description": "শুনক আৰু মিল থকা শব্দ বাছক।"
+    },
+    "spot_the_change": {
+      "description": "ছবিবোৰ তুলনা কৰি পৰিৱৰ্তন বিচাৰক।"
+    }
   },
   "gameInstructions": {
     "hiddenCard": "ঢাকি ৰখা কাৰ্ড",

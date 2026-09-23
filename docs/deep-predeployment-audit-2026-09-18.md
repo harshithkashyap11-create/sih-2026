@@ -1,5 +1,7 @@
 # SMARANA deep predeployment audit — 18 September 2026
 
+Repair follow-up: [predeployment fixes](predeployment-fixes-2026-09-18.md). This audit describes the pre-repair checkout; retain it as historical evidence. Refer to the follow-up for current code changes and verification limits.
+
 **Recommendation: hold deployment for real patient use until the high-priority findings are fixed and staging gates pass.** Local browser checks, API probes, existing tests, and additional regression tests found defects despite a green baseline suite.
 
 This is an audit of the checked-out code and local synthetic environment. No deployment was performed. Application code was not repaired. Audit tests and evidence were added; the temporary frontend container was stopped and the viewport override restored.
@@ -186,4 +188,3 @@ Frontend, from frontend/:
 These checks intentionally remain failing as defect evidence. They are outside the normal test-selection patterns; the audit frontend files are type-aware-lint compatible. No app-source fixes were mixed into this audit.
 
 [Backend audit tests](</home/harshithkashyap/Downloads/smarana-kit (1)/SMARANA/backend/audit_tests/test_deployment_audit.py>), [frontend audit tests](</home/harshithkashyap/Downloads/smarana-kit (1)/SMARANA/frontend/e2e/deployment.audit.tsx>), [live API probe script](</home/harshithkashyap/Downloads/smarana-kit (1)/SMARANA/scripts/deep-audit-api.py>).
-

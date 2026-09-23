@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
 import { doctorApi, type DoctorPatientCard } from "./api";
+import { CARE_TIMEZONE } from "../../db/reminders";
 
 function PatientCard({ patient }: { patient: DoctorPatientCard }) {
   return (
@@ -23,7 +24,7 @@ function PatientCard({ patient }: { patient: DoctorPatientCard }) {
           <dt className="text-muted">Last completed session</dt>
           <dd className="font-bold">
             {patient.last_session_at
-              ? new Date(patient.last_session_at).toLocaleDateString()
+              ? new Date(patient.last_session_at).toLocaleDateString([], { timeZone: CARE_TIMEZONE })
               : "No sessions yet"}
           </dd>
         </div>

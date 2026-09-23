@@ -9,8 +9,8 @@ import te from "./te.json";
 
 export const i18n = i18next.createInstance();
 
-export const supportedLanguages = ["en", "as", "bn", "hi", "te", "mni", "lus"] as const;
-export const languageNames = { en: "English", as: "অসমীয়া", bn: "বাংলা", hi: "हिन्दी", te: "తెలుగు (English fallback)", mni: "Manipuri (English fallback)", lus: "Mizo (English fallback)" };
+export const supportedLanguages = ["en", "as", "bn", "hi", "te", "mni", "lus", "brx", "kha", "grt", "ne", "trp"] as const;
+export const languageNames = { en: "English", as: "অসমীয়া", bn: "বাংলা", hi: "हिन्दी", te: "తెలుగు", mni: "ꯃꯤꯇꯩꯂꯣꯟ (Manipuri)", lus: "Mizo", brx: "बड़ो (Bodo)", kha: "Khasi", grt: "Garo", ne: "नेपाली", trp: "Kokborok" };
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 void i18n.use(initReactI18next).init({
@@ -20,8 +20,7 @@ void i18n.use(initReactI18next).init({
     bn: { translation: bn },
     hi: { translation: hi },
     te: { translation: te },
-    mni: { translation: { localization: { notice: "Manipuri is selectable; interface translations are pending. English is shown as a fallback." } } },
-    lus: { translation: { localization: { notice: "Mizo is selectable; interface translations are pending. English is shown as a fallback." } } },
+    ...Object.fromEntries(["mni", "lus", "brx", "kha", "grt", "ne", "trp"].map((language) => [language, { translation: {} }])),
   },
   lng: "en",
   fallbackLng: "en",

@@ -23,7 +23,8 @@ class RouteView(APIView):
             or not utterance.strip()
             or len(utterance) > 500
             or not isinstance(language, str)
-            or language not in {"en", "as", "bn", "hi", "te", "mni", "lus"}
+            or language
+            not in {"en", "as", "bn", "hi", "te", "mni", "lus", "brx", "kha", "grt", "ne", "trp"}
         ):
             return Response({"detail": "Invalid voice request"}, status=400)
         if not settings.VOICE_LLM_FALLBACK and not settings.LOCAL_LLM_PROVIDER:

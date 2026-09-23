@@ -18,7 +18,7 @@ import {
 
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamesPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [daily, setDaily] = useState<string[]>([]);
   const [region, setRegion] = useState("AS");
   const [definitions, setDefinitions] = useState<GameDefinitionDto[]>([]);
@@ -53,10 +53,18 @@ export function GamesPage() {
       .finally(() => setLoading(false));
   }, []);
   if (loading) return <p>{t("games.loadingList")}</p>;
+  const visibleDefinitions = definitions.filter((item) =>
+    games.some((game) => game.enabled && game.key === item.key),
+  );
   return (
     <section>
-      {i18n.resolvedLanguage !== "en" && <p role="status">{t("games.translationFallback")}</p>}
       <h1 className="mb-5 text-3xl font-bold">{t("games.title")}</h1>
+      <div className="mb-5 rounded-card border-2 border-primary bg-primary/10 p-5">
+        <p className="text-xl font-bold">
+          {t("games.catalogSummary", { count: visibleDefinitions.length })}
+        </p>
+        <p className="mt-2 text-base">{t("games.adaptiveSummary")}</p>
+      </div>
       {failed && (
         <p className="mb-4 rounded-card bg-warning/20 p-4">
           {t("games.offlineList")}
@@ -96,20 +104,27 @@ export function GamesPage() {
         </div>
       </section>
       <div className="grid gap-4 sm:grid-cols-2">
-        {definitions
-          .filter((item) => games.some((game) => game.enabled && game.key === item.key))
-          .map((game) => (
-            <div key={game.key}>
+        {visibleDefinitions.map((game) => {
+          const entry = games.find((item) => item.key === game.key)!;
+          return (
+            <div className="rounded-card bg-surface p-3" key={game.key}>
               <Link
-                className="block min-h-touch rounded-card border-2 border-primary bg-surface p-5 text-xl font-bold"
-                key={game.key}
+                className="block min-h-touch rounded-card border-2 border-primary p-5 text-xl font-bold"
                 to={`/patient/games/${game.key}`}
               >
+                <span aria-hidden="true" className="mr-2">{entry.icon}</span>
                 <span>{gameLabel(game.key, game.name, region)}</span>
-                <span className="mt-2 block text-base font-normal">{t(games.find((entry) => entry.key === game.key)!.descriptionKey, { defaultValue: game.name })}</span>
-                <span className="mt-2 block text-base font-normal">{t("games.duration", { minutes: games.find((entry) => entry.key === game.key)!.estimatedDurationMin })}</span>
+                <span className="mt-2 block text-base font-normal">
+                  {t(entry.descriptionKey, { defaultValue: game.name })}
+                </span>
+                <span className="mt-3 inline-flex rounded-full bg-primary/15 px-3 py-1 text-sm font-bold">
+                  {t("games.adaptiveBadge")}
+                </span>
+                <span className="mt-2 block text-base font-normal">
+                  {t("games.duration", { minutes: entry.estimatedDurationMin })}
+                </span>
                 {game.is_regional && (
-                  <span className="ml-3 rounded-full bg-success/20 px-3 py-1 text-sm font-normal">
+                  <span className="mt-2 inline-flex rounded-full bg-success/20 px-3 py-1 text-sm font-normal">
                     {t("games.regional")}
                   </span>
                 )}
@@ -117,14 +132,15 @@ export function GamesPage() {
               <Link className="inline-flex min-h-touch items-center p-3" to={`/patient/games/${game.key}?practice=true`}>{t("games.practice")}</Link>
               <FavouriteButton kind="game" id={game.key} />
             </div>
-          ))}
+          );
+        })}
       </div>
-      {definitions.filter((item) => games.some((game) => game.enabled && game.key === item.key))
-        .length === 0 && <p>{t("games.empty")}</p>}
+      {visibleDefinitions.length === 0 && <p>{t("games.empty")}</p>}
     </section>
   );
 }
 interface GamePatient {
+  maxDifficultyLevel?: number;
   id: string;
   sessionCapMinutes: number;
   region: string;
@@ -141,6 +157,7 @@ export async function currentPatient(): Promise<GamePatient> {
       results: Array<{
         id: string;
         session_cap_minutes: number | null;
+        max_difficulty_level?: number | null;
         region?: string;
         language?: string;
       }>;
@@ -149,6 +166,7 @@ export async function currentPatient(): Promise<GamePatient> {
     const patient = {
       id: response.results[0].id,
       sessionCapMinutes: response.results[0].session_cap_minutes ?? 20,
+      maxDifficultyLevel: response.results[0].max_difficulty_level ?? 5,
       region: response.results[0].region || "AS",
       language: response.results[0].language ?? "en",
       knownPlaces: [] as string[],

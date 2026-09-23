@@ -10,5 +10,5 @@ export interface Preference {
   theme?: ThemeEnum;
   /** @pattern ^-?\d{0,1}(?:\.\d{0,1})?$ */
   font_scale?: string;
-  language?: 'as' | 'bn' | 'en' | 'hi' | 'te' | 'mni' | 'lus';
+  language?: 'as' | 'bn' | 'en' | 'hi' | 'te' | 'mni' | 'lus' | 'brx' | 'kha' | 'grt' | 'ne' | 'trp';
 }

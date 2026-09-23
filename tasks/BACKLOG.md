@@ -84,29 +84,29 @@ Ordered list of every task card. Work top to bottom unless the mentor reorders. 
 
 ## Phase 6 — Admin (Django Admin)
 
-- [ ] **T060** Django Admin: approval workflow for doctors and caregivers — M (after T010, T016)
-- [ ] **T061** Django Admin: doctor/caregiver ↔ patient assignments with reason and history; instant access revocation — M (after T012, T060)
-- [ ] **T062** Django Admin: dashboard counts, game catalog management, security actions — M (after T060, T030)
-- [ ] **T063** Audit history admin view + export log entries — S (after T016, T060)
+- [x] **T060** Django Admin: approval workflow for doctors and caregivers — M (after T010, T016)
+- [x] **T061** Django Admin: doctor/caregiver ↔ patient assignments with reason and history; instant access revocation — M (after T012, T060)
+- [x] **T062** Django Admin: dashboard counts, game catalog management, security actions — M (after T060, T030)
+- [x] **T063** Audit history admin view + export log entries — S (after T016, T060)
 - [ ] **T064** Admin MFA (django-otp) and Phase 6 demo script — S (after T060)
 
 ## Phase 7 — Offline & PWA
 
-- [ ] **T070** Dexie schema, outbox, and repo migration for all patient features — L (after T024, T027, T030)
-- [ ] **T071** Sync endpoints (push/pull) with idempotency and DDA reconciliation + client sync engine — L (after T070, T031)
-- [ ] **T072** Service worker precache/runtime caching and offline orientation/home — M (after T071)
-- [ ] **T073** Offline PIN unlock and encrypted refresh token — M (after T071, T014)
-- [ ] **T074** Offline UX copy audit and caregiver sync status — S (after T071, T040)
-- [ ] **T075** Device-offline alert rule and sync error alerts — S (after T044, T071)
-- [ ] **T076** Playwright offline round-trip test + CI — M (after T072, T073, T074)
+- [x] **T070** Dexie schema, outbox, and repo migration for all patient features — L (after T024, T027, T030)
+- [x] **T071** Sync endpoints (push/pull) with idempotency and DDA reconciliation + client sync engine — L (after T070, T031)
+- [x] **T072** Service worker precache/runtime caching and offline orientation/home — M (after T071)
+- [x] **T073** Offline PIN unlock and encrypted refresh token — M (after T071, T014)
+- [x] **T074** Offline UX copy audit and caregiver sync status — S (after T071, T040)
+- [x] **T075** Device-offline alert rule and sync error alerts — S (after T044, T071)
+- [x] **T076** Playwright offline round-trip test + CI — M (after T072, T073, T074)
 
 ## Phase 8 — Voice
 
-- [ ] **T080** Speech wrappers (STT/TTS) with fakes and mic indicator — M (after T023b)
-- [ ] **T081** Intent router (rule-based) with shared utterance cases — M (after T080)
-- [ ] **T082** Wire intents to actions: navigation, medicines summary, next activity, read-this, slow speech toggle — M (after T081)
-- [ ] **T083** Language lock and voice settings — S (after T082, T015)
-- [ ] **T084** Optional LLM fallback endpoint behind a flag — S (after T081)
+- [x] **T080** Speech wrappers (STT/TTS) with fakes and mic indicator — M (after T023b)
+- [x] **T081** Intent router (rule-based) with shared utterance cases — M (after T080)
+- [x] **T082** Wire intents to actions: navigation, medicines summary, next activity, read-this, slow speech toggle — M (after T081)
+- [x] **T083** Language lock and voice settings — S (after T082, T015)
+- [x] **T084** Optional LLM fallback endpoint behind a flag — S (after T081)
 
 ## Phase 9 — Regional content
 

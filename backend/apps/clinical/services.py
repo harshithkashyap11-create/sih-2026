@@ -75,6 +75,12 @@ def apply_dda_override(
     elif action == DdaOverride.Action.CAP:
         state.cap_level = _checked_level(game, value)
         state.level = min(state.level, state.cap_level)
+    state.level = min(
+        state.level,
+        state.cap_level or game.max_level,
+        patient.max_difficulty_level or game.max_level,
+        game.max_level,
+    )
     state.save()
     override = DdaOverride.objects.create(patient=patient, game=game, doctor=doctor, **data)
     DifficultyChange.objects.create(
@@ -133,11 +139,15 @@ def upsert_assignment(
     if not GameSession.objects.filter(
         patient=patient, game=assignment.game, guest_mode=False
     ).exists():
-        DifficultyState.objects.update_or_create(
-            patient=patient,
-            game=assignment.game,
-            defaults={"level": assignment.start_level, "window": []},
+        state, _ = DifficultyState.objects.get_or_create(patient=patient, game=assignment.game)
+        state.level = min(
+            assignment.start_level,
+            state.cap_level or assignment.game.max_level,
+            patient.max_difficulty_level or assignment.game.max_level,
+            assignment.game.max_level,
         )
+        state.window = []
+        state.save(update_fields=["level", "window", "updated_at"])
     audit(
         doctor,
         "exercise_assignment.updated",

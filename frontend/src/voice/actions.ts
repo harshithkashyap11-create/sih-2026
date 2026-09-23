@@ -1,4 +1,4 @@
-import { i18n } from "../shared/i18n";
+import { i18n, supportedLanguages, type SupportedLanguage } from "../shared/i18n";
 import { dayInTimezone } from "../db/reminders";
 import type { NavigateFunction, To, NavigateOptions } from "react-router-dom";
 import { db } from "../db/schema";
@@ -81,8 +81,8 @@ export async function performAction(
     const { getMeta } = await import("../db/schema");
     if (
       (await getMeta("languageLocked")) !== "1" &&
-      ["en", "as", "bn", "hi", "te", "mni", "lus"].includes(
-        command.slots.language ?? "",
+      supportedLanguages.includes(
+        (command.slots.language ?? "") as SupportedLanguage,
       )
     ) {
       check();

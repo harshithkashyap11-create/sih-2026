@@ -1,5 +1,10 @@
 {
   "scope": "Patient and authentication UI catalogs; caregiver/doctor authored clinical text remains separate.",
+  "brx": { "technical": "selectable", "origin": "translation-pending", "nativeReview": "required", "clinicalReview": "required" },
+  "kha": { "technical": "selectable", "origin": "translation-pending", "nativeReview": "required", "clinicalReview": "required" },
+  "grt": { "technical": "selectable", "origin": "translation-pending", "nativeReview": "required", "clinicalReview": "required" },
+  "ne": { "technical": "selectable", "origin": "translation-pending", "nativeReview": "required", "clinicalReview": "required" },
+  "trp": { "technical": "selectable", "origin": "translation-pending", "nativeReview": "required", "clinicalReview": "required" },
   "en": {
     "technical": "complete",
     "origin": "repository-authored",

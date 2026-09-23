@@ -11,9 +11,55 @@ from apps.clinical.services import apply_dda_override
 from apps.games.models import DifficultyState, GameDefinition
 from apps.games.performance import record_performance
 from apps.routines.models import Medication
-from apps.shared.tests.factories import DoctorAssignmentFactory, DoctorFactory, PatientFactory
+from apps.shared.tests.factories import (
+    CareAssignmentFactory,
+    DoctorAssignmentFactory,
+    DoctorFactory,
+    PatientFactory,
+)
 
 pytestmark = pytest.mark.django_db
+
+
+def test_invalid_alert_patient_returns_400():
+    _, doctor, client = setup_patient()
+    client.force_authenticate(user=doctor)
+    assert client.get("/api/v1/alerts/?patient=not-a-uuid").status_code == 400
+
+
+def test_maximum_report_date_returns_400():
+    patient, doctor, client = setup_patient()
+    client.force_authenticate(user=doctor)
+    assert (
+        client.get(
+            f"/api/v1/patients/{patient.id}/report/?from=9999-12-31&to=9999-12-31"
+        ).status_code
+        == 400
+    )
+
+
+@pytest.mark.parametrize("language", ["brx", "kha", "grt", "ne", "trp"])
+def test_new_language_preferences_persist(language):
+    patient, _, client = setup_patient()
+    response = client.patch("/api/v1/auth/me/preferences/", {"language": language}, format="json")
+    assert response.status_code == 200
+    patient.user.refresh_from_db()
+    assert patient.user.language == language
+
+
+def test_primary_contact_tracks_active_assignment():
+    patient, _, client = setup_patient()
+    assignment = CareAssignmentFactory.create(patient=patient, is_primary=True)
+    assignment.caregiver.phone = "+919876543210"
+    assignment.caregiver.save()
+    assert (
+        client.get(f"/api/v1/patients/{patient.id}/primary-contact/").data["phone"]
+        == "+919876543210"
+    )
+    assignment.active = False
+    assignment.is_primary = False
+    assignment.save()
+    assert client.get(f"/api/v1/patients/{patient.id}/primary-contact/").data is None
 
 
 def setup_patient():

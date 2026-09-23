@@ -13,6 +13,7 @@ import { TimelineTab } from "./TimelineTab";
 import { CareTeamTab } from "./CareTeamTab";
 import { WellnessTab } from "./WellnessTab";
 import { ProfileTab } from "./profile/ProfileTab";
+import { CARE_TIMEZONE } from "../../db/reminders";
 
 const tabs = [
   "practice",
@@ -48,7 +49,7 @@ function TodayTab({
     <div className="space-y-5">
       <p className="text-sm text-muted">
         Last synced:{" "}
-        {lastSeen ? new Date(lastSeen).toLocaleString() : "Not yet synced"}
+        {lastSeen ? new Date(lastSeen).toLocaleString([], { timeZone: CARE_TIMEZONE }) : "Not yet synced"}
       </p>
       <p className="text-sm text-muted">
         Pending on device: {pendingOnDevice ? "Yes" : "No"}
@@ -69,11 +70,12 @@ function TodayTab({
                 </div>
                 <p className="text-sm text-muted">
                   {new Date(reminder.scheduled_at).toLocaleTimeString([], {
+                    timeZone: CARE_TIMEZONE,
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
                   {reminder.responded_at
-                    ? ` · Responded ${new Date(reminder.responded_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                    ? ` · Responded ${new Date(reminder.responded_at).toLocaleTimeString([], { timeZone: CARE_TIMEZONE, hour: "2-digit", minute: "2-digit" })}`
                     : ""}
                 </p>
               </li>

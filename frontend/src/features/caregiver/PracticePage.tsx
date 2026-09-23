@@ -51,7 +51,7 @@ export function PracticePage() {
         <h1>Try a game (practice)</h1>
         <p>Practice does not affect patient progress.</p>
         <ul>
-          {query.data.games.map((g) => (
+          {query.data.games.filter((g) => gameByKey(g.key)).map((g) => (
             <li key={g.key}>
               <Link
                 className="block min-h-[44px] p-3"
@@ -66,7 +66,7 @@ export function PracticePage() {
     );
   const game = query.data.games.find((g) => g.key === gameKey);
   const module = gameByKey(gameKey);
-  if (!game || !module) return <p>This game is unavailable.</p>;
+  if (!game || !module) return <><p>This game is unavailable.</p><Link to={`/caregiver/${patientId}/practice`}>Back to practice games</Link></>;
   try {
     module.buildRound(
       game.min_level,

@@ -3,6 +3,7 @@
 from datetime import timedelta
 from typing import Any
 
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -310,7 +311,11 @@ class PatientViewSet(ReadOnlyModelViewSet[PatientProfile]):
                 fields=dict(serializer.validated_data),
             )
             return Response(MedicationSerializer(medication).data, status=status.HTTP_201_CREATED)
-        queryset = Medication.objects.filter(patient=patient, active=True)
+        today = timezone.localdate()
+        queryset = Medication.objects.filter(patient=patient, active=True).filter(
+            Q(start_date__isnull=True) | Q(start_date__lte=today),
+            Q(end_date__isnull=True) | Q(end_date__gte=today),
+        )
         return Response(MedicationSerializer(queryset, many=True).data)
 
     @action(detail=True, methods=["get", "patch"], url_path="profile")
@@ -487,6 +492,20 @@ class PatientViewSet(ReadOnlyModelViewSet[PatientProfile]):
                 }
                 for u in members
             ]
+        )
+
+    @action(detail=True, methods=["get"], url_path="primary-contact")
+    def primary_contact(self, request: Request, **kwargs: object) -> Response:
+        patient = self.get_object()
+        assignment = (
+            patient.care_assignments.filter(active=True, is_primary=True)
+            .select_related("caregiver")
+            .first()
+        )
+        if assignment is None:
+            return Response(None)
+        return Response(
+            {"name": assignment.caregiver.display_name, "phone": assignment.caregiver.phone}
         )
 
     @action(detail=True, methods=["post"], url_path="routine-conflicts")

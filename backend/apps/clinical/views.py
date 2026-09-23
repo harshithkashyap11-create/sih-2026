@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -94,16 +95,24 @@ class PatientBaseline(APIView):
         baseline = ClinicalBaseline.objects.filter(patient=patient).first()
         return Response(ClinicalBaselineSerializer(baseline).data if baseline else {})
 
+    @transaction.atomic
     def put(self, request: Request, patient_id: str) -> Response:
         patient = get_object_or_404(patients_for(authenticated_user(request)), id=patient_id)
         if authenticated_user(request).role != User.Role.DOCTOR:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        from apps.patients.models import PatientProfile
+
+        patient = PatientProfile.objects.select_for_update().get(pk=patient.pk)
         baseline = ClinicalBaseline.objects.filter(patient=patient).first()
         serializer = ClinicalBaselineSerializer(baseline, data=request.data)
         serializer.is_valid(raise_exception=True)
         baseline = serializer.save(patient=patient, recorded_by=authenticated_user(request))
         patient.max_difficulty_level = baseline.max_difficulty_level
         patient.save(update_fields=["max_difficulty_level", "updated_at"])
+        if patient.max_difficulty_level is not None:
+            DifficultyState.objects.filter(
+                patient=patient, level__gt=patient.max_difficulty_level
+            ).update(level=patient.max_difficulty_level)
         from apps.audit.services import audit
 
         audit(authenticated_user(request), "clinical_baseline.updated", baseline, patient=patient)

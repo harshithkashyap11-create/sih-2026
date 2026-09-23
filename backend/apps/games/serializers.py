@@ -45,6 +45,14 @@ class PerformanceEventSerializer(serializers.Serializer[dict[str, object]]):
     session_duration_sec = serializers.FloatField(min_value=0)
     rounds_completed = serializers.IntegerField(min_value=0)
     timestamp = serializers.DateTimeField()
+    fatigue_flags = serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=["consecutive_mistakes", "slow_reactions", "rapid_taps", "session_cap"]
+        ),
+        required=False,
+        default=list,
+        max_length=4,
+    )
 
     def validate(self, attrs: dict[str, object]) -> dict[str, object]:
         import math

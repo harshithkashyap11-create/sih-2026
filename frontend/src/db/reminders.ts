@@ -1,7 +1,11 @@
 import { db, type CachedRoutineItem } from "./schema";
 
 const namespace = "c64f5d1d63d54b1f98525e6437b78a30";
-const timezone = "Asia/Kolkata";
+export const CARE_TIMEZONE = "Asia/Kolkata";
+const timezone = CARE_TIMEZONE;
+export function careTime(date = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: CARE_TIMEZONE, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date);
+}
 export function dayInTimezone(date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,

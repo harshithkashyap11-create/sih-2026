@@ -23,6 +23,7 @@ import {
   clearOfflineSecrets,
   revokeOfflineAccess,
   storeOfflineSecrets,
+  changeOfflinePin,
   lockOfflineStorage,
   updateEncryptedRefreshToken,
 } from "../../db/crypto";
@@ -40,7 +41,7 @@ interface AuthState {
     credentials: ProfessionalLogin,
     offlinePin?: string,
   ) => Promise<LoginResponse>;
-  patientLogin: (credentials: PatientLogin) => Promise<LoginResponse>;
+  patientLogin: (credentials: PatientLogin, previousPin?: string) => Promise<LoginResponse>;
   setSession: (session: LoginResponse) => void;
   clearSession: () => void;
   resumeOfflineSession: (refresh: string, user: UserSummary) => void;
@@ -137,7 +138,7 @@ export const useAuthStore = create<AuthState>(() => ({
     applySession(session);
     return session;
   },
-  patientLogin: async (credentials) => {
+  patientLogin: async (credentials, previousPin) => {
     const session = await v1AuthPatientLoginCreate(credentials, {
       skipAuthRefresh: true,
     });
@@ -149,6 +150,7 @@ export const useAuthStore = create<AuthState>(() => ({
       );
       const patient = patients.results[0];
       if (!patient) throw new Error("Patient profile unavailable");
+      if (previousPin) await changeOfflinePin(previousPin, credentials.pin, session.user.id);
       await storeOfflineSecrets(credentials.pin, session.refresh, session.user);
       applySession(session);
       await activatePatient(patient.id, session.user.id);

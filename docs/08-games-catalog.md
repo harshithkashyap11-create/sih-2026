@@ -1,6 +1,12 @@
-# 08 — Games Catalog (12 games)
+# 08 — Games Catalog (21 games)
 
-All games are built on the **game engine** (T030): it owns the session lifecycle (`start → rounds → end`), timing, metrics accumulation, fatigue detection, the DDA call, the supportive end screen, persistence (offline), and resume. A game module implements only:
+The runtime source of truth is `frontend/src/games/registry.ts`, backed by
+`shared/games.json`. The catalogue currently contains 12 integrated games and
+9 regional/personal modules. All use a shared session host for timing, metrics,
+fatigue handling, dynamic difficulty adjustment (DDA), supportive feedback and
+offline persistence.
+
+Regional modules implement this interface:
 
 ```ts
 interface GameModule {
@@ -15,29 +21,40 @@ interface GameModule {
 
 RNG is seeded per session so a resumed session regenerates identical rounds.
 
-Level 1–10. Each game defines how level maps to parameters. Defaults: rounds = 4 + floor(level/2), hint always available (costs a `hintsUsed`).
+Live difficulty is bounded to levels 1–5. Historical module logic can still build
+levels 6–10 for compatibility tests, but those levels are not exposed by the
+current API or patient UI.
 
-## MVP set (Phase 3)
+## Integrated games
 
-| # | Key | Name | Domains | Level knobs | Regional? |
-|---|---|---|---|---|---|
-| 1 | `memory_match` | Memory Match | memory, attention | grid 2×2 → 4×5; face-up preview time 4s → 1s; images from content pack (dishes, festivals) | yes (images) |
-| 2 | `sequence_recall` | Sequence Recall | memory, sequencing | sequence length 2 → 8; item set size 3 → 8; playback speed | tunes/colours |
-| 3 | `object_sorting` | Object Sorting | recognition, attention | 2 → 4 categories; 4 → 14 items; distractors at L6+ | regional items (foods, tools) |
-| 4 | `tea_garden_attention` | Tea Garden Attention | attention | find N ripe leaves/animals in a busy scene; scene density; time limit off until L4 | yes (Assam scene; other states get their own scene: bamboo grove, orchard, market) |
-| 5 | `bihu_rhythm_recall` | Bihu Rhythm Recall | memory, sequencing | tap pattern length 3 → 8; tempo; visual + audio cue → audio only at L7+ | yes (per-state rhythm: Bihu, Cheiraoba, Wangala, Chapchar Kut…) |
-| 6 | `daily_life_sequencing` | Daily Life Sequencing | routine, sequencing | order 3 → 7 steps of a daily task (making tea, morning routine, going to market); regional dishes/rituals | yes (scenes) |
+| # | Key | Name | Primary domain | Main difficulty knobs |
+|---|---|---|---|---|
+| 1 | `sequence_recall` | Sequence Recall | memory | sequence length, distractors, observation time |
+| 2 | `memory_match` | Memory Match | memory | pair count, preview time, visual similarity |
+| 3 | `find_the_change` | Find the Change | attention | object count, change count, observation time |
+| 4 | `object_sorting` | Object Sorting | reasoning | item count, categories, distractors |
+| 5 | `daily_routine` | Daily Routine Builder | reasoning | step count, ordering complexity, distractions |
+| 6 | `word_recall` | Word Recall | memory | word count, recall mode, cues |
+| 7 | `visual_search` | Visual Search | attention | grid size, similarity, target count |
+| 8 | `pattern_completion` | Pattern Completion | reasoning | rule complexity, choices, support |
+| 9 | `spatial_recall` | Spatial Recall | visuospatial | grid size, object count, delay |
+| 10 | `attention_tap` | Attention Tap | attention | stimulus count, target frequency, inhibition |
+| 11 | `association_game` | Association Game | associative memory | pair count, semantic distractors, cues |
+| 12 | `personal_memory` | Personal Memory Recall | personal memory | recognition/recall mode, context, hints |
 
-## v1 set (Phase 10)
+## Regional and personal-content modules
 
-| # | Key | Name | Domains | Level knobs | Regional? |
-|---|---|---|---|---|---|
-| 7 | `familiar_place_recall` | Familiar Place Recall | recognition, memory | name the landmark from photo; 2 → 4 options; local → wider region at higher levels; also uses patient's `known_places` | yes |
-| 8 | `who_is_this` | Who Is This? (family) | recognition | family photos from FamilyMember; 2 → 4 options; L5+ asks relationship | patient data |
-| 9 | `word_pairs` | Word Pairs | memory, language | pairs in patient's language; 3 → 8 pairs; delay before recall | language packs |
-| 10 | `spot_the_change` | Spot the Change | attention | two scenes, 1 → 4 differences; regional scenes | yes |
-| 11 | `festival_calendar` | Festival Match | recognition, memory | match festival to month/season/state; 2 → 4 options | yes |
-| 12 | `sound_match` | Sound Match | recognition, memory | hear a sound (rain, bell, bird, market), pick the image; 2 → 4 options; L6+ sequence of 2 sounds | yes (sound packs) |
+| # | Key | Name | Domains | Required content |
+|---|---|---|---|---|
+| 13 | `tea_garden_attention` | Tea Garden Attention | attention | regional scene/items |
+| 14 | `bihu_rhythm_recall` | Bihu Rhythm Recall | memory, sequencing | rhythm/audio cues |
+| 15 | `daily_life_sequencing` | Daily Life Sequencing | routine, sequencing | regional activities |
+| 16 | `familiar_place_recall` | Familiar Place Recall | recognition, memory | regional or patient-known places |
+| 17 | `who_is_this` | Who Is This? | recognition | patient family photos |
+| 18 | `word_pairs` | Word Pairs | memory, language | language-pack words |
+| 19 | `festival_calendar` | Festival Calendar | recognition, memory | festival season/month/state metadata |
+| 20 | `sound_match` | Sound Match | recognition, memory | paired audio and images |
+| 21 | `spot_the_change` | Spot the Change | attention | same-scene difference variants |
 
 ## Metrics every game emits (validated by `GameDefinition.metrics_schema`)
 

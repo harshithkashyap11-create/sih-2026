@@ -104,6 +104,7 @@ export async function applyPull(
             region: profile.region || "AS",
             language: profile.language || "en",
             sessionCapMinutes: profile.session_cap_minutes ?? 20,
+            maxDifficultyLevel: profile.max_difficulty_level ?? 5,
             knownPlaces: profile.known_places ?? [],
             useMemoriesInQuiz: profile.use_memories_in_quiz,
           }),
@@ -168,6 +169,8 @@ export async function applyPull(
           times: item.times as string[],
           instructions: String(item.instructions),
           active: Boolean(item.active),
+          start_date: item.start_date as string | null,
+          end_date: item.end_date as string | null,
         });
       for (const item of records.memories ?? [])
         await db.memories.put({
@@ -333,6 +336,10 @@ async function runSync(): Promise<boolean> {
     );
     if (!sameAccount() || pull.patient_id !== patientId) return false;
     await applyPull(pull.records, patientId);
+    if ((pull.records.deleted ?? []).some((row) => ["memories", "family_members"].includes(String(row.model)))) {
+      const { purgeUnreferencedMedia } = await import("./media");
+      await purgeUnreferencedMedia(patientId);
+    }
     if (typeof window !== "undefined")
       window.dispatchEvent(new Event("smarana:comfort-updated"));
     await setMeta("lastPullAt", pull.server_time);

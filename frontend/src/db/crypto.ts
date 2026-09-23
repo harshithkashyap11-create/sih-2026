@@ -29,6 +29,12 @@ export interface OfflineUnlock {
   refreshToken: string;
   user: UserSummary;
 }
+export class OfflinePinRecoveryRequired extends Error {
+  constructor() {
+    super("The previous device PIN is required to recover encrypted offline records.");
+    this.name = "OfflinePinRecoveryRequired";
+  }
+}
 
 function b64(data: ArrayBuffer | Uint8Array): string {
   return btoa(String.fromCharCode(...new Uint8Array(data)));
@@ -79,7 +85,11 @@ export async function storeOfflineSecrets(
   if (previous) {
     salt = bytes(previous.salt);
     key = await deriveKey(pin, salt);
-    await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes(previous.verifierIv) as BufferSource }, key, bytes(previous.verifier) as BufferSource);
+    try {
+      await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes(previous.verifierIv) as BufferSource }, key, bytes(previous.verifier) as BufferSource);
+    } catch {
+      throw new OfflinePinRecoveryRequired();
+    }
     if (previous.wrappedKey && previous.keyIv) {
       rawKey = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unbase64(previous.keyIv) }, key, unbase64(previous.wrappedKey)));
     } else rawKey = crypto.getRandomValues(new Uint8Array(32));
@@ -226,9 +236,13 @@ export function clearOfflineSecrets(): Promise<void> {
   return Promise.resolve();
 }
 
-export async function changeOfflinePin(oldPin: string, newPin: string): Promise<void> {
+export async function changeOfflinePin(oldPin: string, newPin: string, expectedUserId?: string): Promise<void> {
   const unlocked = await unlockOffline(oldPin);
   if (!unlocked) throw new Error("Current PIN is required to preserve offline records");
+  if (expectedUserId && unlocked.user.id !== expectedUserId) {
+    lockOfflineStorage();
+    throw new Error("The previous PIN belongs to a different account");
+  }
   const raw = await getMeta("pinVerifier");
   if (!raw) throw new Error("Offline credentials unavailable");
   const previous = JSON.parse(raw) as StoredSecrets;

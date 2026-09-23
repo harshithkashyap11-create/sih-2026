@@ -56,7 +56,12 @@ export const memoriesRepository = {
         patientId: id,
         occurredOn: item.occurred_on,
       }));
-      await db.memories.bulkPut(memories);
+      await db.transaction("rw", db.memories, async () => {
+        await db.memories.where("patientId").equals(id).delete();
+        await db.memories.bulkPut(memories);
+      });
+      const { purgeUnreferencedMedia } = await import("../media");
+      await purgeUnreferencedMedia(id);
       return memories;
     } catch {
       return db.memories.where("patientId").equals(id).toArray();
@@ -64,7 +69,7 @@ export const memoriesRepository = {
   },
   async get(memoryId: string): Promise<CachedMemory | undefined> {
     const cached = await db.memories.get(memoryId);
-    if (cached?.patientId === (await patientId())) return cached;
+    if ((isFakeOffline() || !navigator.onLine) && cached?.patientId === (await patientId())) return cached;
     return (await this.list()).find((memory) => memory.id === memoryId);
   },
   async nextQuestion(): Promise<QuizQuestion> {

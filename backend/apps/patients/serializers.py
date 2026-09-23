@@ -33,6 +33,7 @@ class PatientCardSerializer(serializers.ModelSerializer[PatientProfile]):
             "is_primary",
             "pending_on_device",
             "session_cap_minutes",
+            "max_difficulty_level",
             "region",
         )
         read_only_fields = fields

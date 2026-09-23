@@ -86,7 +86,7 @@ jobs:
           python manage.py check
 
       - name: Test backend
-        run: pytest -q
+        run: pytest -q apps config audit_tests/test_deployment_audit.py
 
   frontend:
     name: Frontend
@@ -120,7 +120,9 @@ jobs:
         run: npm run typecheck
 
       - name: Test frontend
-        run: npm test -- --run
+        run: |
+          npm test -- --run
+          npx vitest run --config e2e/deployment.audit.config.ts
 
       - name: Check locale catalogs and regression checks
         run: |
@@ -202,7 +204,7 @@ jobs:
           exit 1
       - name: Complete and upload an offline game and reminder
         working-directory: frontend
-        run: npx playwright test e2e/offline-real.spec.ts e2e/reports-real.spec.ts
+        run: npx playwright test e2e/offline-real.spec.ts e2e/reports-real.spec.ts e2e/release-real.spec.ts
       - name: Show backend logs on failure
         if: failure()
         run: cat /tmp/smarana-backend.log

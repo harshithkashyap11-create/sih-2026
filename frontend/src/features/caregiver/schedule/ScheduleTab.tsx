@@ -33,7 +33,7 @@ const emptyForm = (): RoutinePayload => ({
   category: "custom",
   time_of_day: "08:00",
   days_of_week: [0, 1, 2, 3, 4, 5, 6],
-  start_date: new Date().toISOString().slice(0, 10),
+  start_date: dayInTimezone(),
   end_date: null,
   icon: "",
   note: "",
@@ -282,3 +282,4 @@ export function ScheduleTab({ patientId }: { patientId: string }) {
     </div>
   );
 }
+import { dayInTimezone } from "../../../db/reminders";

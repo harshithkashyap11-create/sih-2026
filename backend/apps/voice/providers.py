@@ -213,7 +213,20 @@ def valid_result(result: ProviderResult | None) -> TypeGuard[ProviderResult]:
             and re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", slots.get("time", ""))
         )
     if result.intent == "switch_language":
-        return slots.get("language") in {"en", "as", "bn", "hi", "te", "mni", "lus"}
+        return slots.get("language") in {
+            "en",
+            "as",
+            "bn",
+            "hi",
+            "te",
+            "mni",
+            "lus",
+            "brx",
+            "kha",
+            "grt",
+            "ne",
+            "trp",
+        }
     if result.intent == "call_person":
         return bool(slots.get("name", "").strip())
     if result.intent == "general_chat":

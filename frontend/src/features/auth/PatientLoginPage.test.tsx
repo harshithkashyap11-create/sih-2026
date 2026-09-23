@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 
 import { ApiError } from "../../api/client";
-import { storeOfflineSecrets, unlockOffline } from "../../db/crypto";
+import { storeOfflineSecrets, unlockOffline, OfflinePinRecoveryRequired } from "../../db/crypto";
 import { renderWithProviders } from "../../test/utils";
 import { useAuthStore } from "./authStore";
 import { PatientLoginPage } from "./PatientLoginPage";
@@ -15,6 +15,7 @@ vi.mock("../../db/schema", () => ({
 }));
 
 vi.mock("../../db/crypto", () => ({
+  OfflinePinRecoveryRequired: class extends Error {},
   lockOfflineStorage: vi.fn(),
   clearOfflineFailures: vi.fn().mockResolvedValue(undefined),
   offlineLockedUntil: vi.fn().mockResolvedValue(null),
@@ -61,11 +62,21 @@ test("auto-submits after four digits with the remembered login id", async () => 
       expect.objectContaining({ login_id: "RAO1234", pin: "1234" }),
     ),
   );
-  expect(storeOfflineSecrets).toHaveBeenCalledWith(
-    "1234",
-    "refresh",
-    session.user,
-  );
+  // The authentication store owns vault setup; the page must not initialize it twice.
+  expect(storeOfflineSecrets).not.toHaveBeenCalled();
+});
+
+test("offers explicit previous-device-PIN recovery without overwriting saved records", async () => {
+  const user = userEvent.setup();
+  const patientLogin = vi.fn().mockRejectedValueOnce(new OfflinePinRecoveryRequired()).mockResolvedValueOnce(session);
+  useAuthStore.setState({ patientLogin });
+  renderWithProviders(<PatientLoginPage />);
+  await screen.findByDisplayValue("RAO1234");
+  for (const digit of ["1", "2", "3", "4"]) await user.click(screen.getByRole("button", { name: digit }));
+  await user.type(await screen.findByLabelText("Previous device PIN"), "5678");
+  for (const digit of ["1", "2", "3", "4"]) await user.click(screen.getByRole("button", { name: digit }));
+  await waitFor(() => expect(patientLogin).toHaveBeenLastCalledWith(expect.objectContaining({ pin: "1234" }), "5678"));
+  expect(storeOfflineSecrets).not.toHaveBeenCalled();
 });
 
 test("unlocks from encrypted local credentials when the network is unavailable", async () => {

@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { summarizeGameParticipation } from "../../../games/analytics";
 import { caregiverApi } from "../api";
+import { CARE_TIMEZONE } from "../../../db/reminders";
 
 export function ProgressTab({ patientId }: { patientId: string }) {
   const [days, setDays] = useState<7 | 30>(7);
@@ -43,7 +44,7 @@ export function ProgressTab({ patientId }: { patientId: string }) {
     .filter((row) => Date.parse(row.ended_at) >= cutoff)
     .reverse()
     .map((row) => ({
-      date: new Date(row.ended_at).toLocaleDateString(),
+      date: new Date(row.ended_at).toLocaleDateString([], { timeZone: CARE_TIMEZONE }),
       accuracy: Math.round((row.metrics.accuracy ?? 0) * 100),
       reaction: row.metrics.mean_reaction_ms ?? 0,
     }));
@@ -148,7 +149,7 @@ export function ProgressTab({ patientId }: { patientId: string }) {
                 {sessions.data.map((row) => (
                   <tr key={row.id}>
                     <td>{row.game_name}</td>
-                    <td>{new Date(row.ended_at).toLocaleDateString()}</td>
+                    <td>{new Date(row.ended_at).toLocaleDateString([], { timeZone: CARE_TIMEZONE })}</td>
                     <td>{row.level}</td>
                     <td>{row.metrics.completed === false ? "No" : "Yes"}</td>
                   </tr>
@@ -199,7 +200,7 @@ export function ProgressTab({ patientId }: { patientId: string }) {
                 {note.text}
                 <small className="block text-muted">
                   {note.author_name} ·{" "}
-                  {new Date(note.created_at).toLocaleString()}
+                  {new Date(note.created_at).toLocaleString([], { timeZone: CARE_TIMEZONE })}
                 </small>
               </li>
             ))}

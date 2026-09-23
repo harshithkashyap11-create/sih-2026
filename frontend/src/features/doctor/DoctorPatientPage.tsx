@@ -4,6 +4,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { WellnessTab } from "../caregiver/WellnessTab";
 import { ReportsTab } from "../caregiver/ReportsTab";
 import { doctorApi } from "./api";
+import { DoctorAlertsTab } from "./DoctorAlertsTab";
 import { DifficultyTab, MetricsTab, NotesTab, OverviewTab, RoutineTab } from "./PatientTabs";
 
 const tabs = [
@@ -66,7 +67,7 @@ export function DoctorPatientPage() {
           {tab === "difficulty" && <DifficultyTab patientId={patientId} />}
           {tab === "routine-medicines" && <RoutineTab patientId={patientId} />}
           {tab === "notes" && <NotesTab patientId={patientId} />}
-          {tab === "alerts" && <p>Open patient alerts are shown on the doctor dashboard.</p>}
+          {tab === "alerts" && <DoctorAlertsTab patientId={patientId} />}
           {tab === "report" && <ReportsTab key={patientId} patientId={patientId} clinical />}
         </div>
       </div>

@@ -10,19 +10,24 @@ export interface PerformanceEvent {
   errors: number; hints_used: number; completed: boolean; early_exit: boolean;
   session_duration_sec: number; rounds_completed: number; timestamp: string;
   meta?: Record<string, unknown>; game_metadata?: Record<string, unknown>;
+  fatigue_flags?: string[];
 }
 export function sessionMetrics(event: PerformanceEvent) {
   return { accuracy: event.accuracy, mean_reaction_ms: event.reaction_time_ms,
     mistakes: event.errors, hints_used: event.hints_used, rounds: event.rounds_completed,
     duration_ms: event.session_duration_sec * 1000, completed: event.completed && !event.early_exit,
-    abandoned_reason: event.early_exit ? "user_exit" : null, fatigue_flags: [],
+    abandoned_reason: event.early_exit ? "user_exit" : null, fatigue_flags: event.fatigue_flags ?? [],
     raw_events: [{ ...event }] };
 }
-export function createIntegratedTransport(patientId: string, game: GameDefinitionDto, guestMode = false) {
+export function createIntegratedTransport(patientId: string, game: GameDefinitionDto, guestMode = false,
+  options: { sessionCapMinutes?: number; onFatigue?: () => void } = {}) {
   let id = crypto.randomUUID();
   let startedAt = new Date().toISOString();
   let finished = false;
   let latest: PerformanceEvent | null = null;
+  let observedRounds = 0;
+  let observedErrors = 0;
+  let consecutiveErrorRounds = 0;
   let saving: Promise<{ adjustment: number; source: string }> | null = null;
   let queue: Promise<{ adjustment: number; source: string }> = Promise.resolve({ adjustment: 0, source: "idle" });
   const enqueue = (event: PerformanceEvent) => {
@@ -33,6 +38,19 @@ export function createIntegratedTransport(patientId: string, game: GameDefinitio
   async function submit(event: PerformanceEvent): Promise<{ adjustment: number; source: string }> {
     if (event.game_id !== game.key) throw new Error("Mismatched game event");
     if (finished) return { adjustment: 0, source: "saved" };
+    const fatigue = [...(event.fatigue_flags ?? [])];
+    if (event.session_duration_sec >= (options.sessionCapMinutes ?? 20) * 60) fatigue.push("session_cap");
+    if (event.rounds_completed > observedRounds) {
+      consecutiveErrorRounds = event.rounds_completed === observedRounds + 1 && event.errors > observedErrors
+        ? consecutiveErrorRounds + 1 : 0;
+      observedRounds = event.rounds_completed;
+      observedErrors = event.errors;
+    }
+    if (consecutiveErrorRounds >= 4) fatigue.push("consecutive_mistakes");
+    if (fatigue.length) {
+      event = { ...event, fatigue_flags: [...new Set(fatigue)], early_exit: true, completed: false };
+      options.onFatigue?.();
+    }
     if (saving) {
       await saving;
       return finished ? { adjustment: 0, source: "saved" } : submit(event);
@@ -74,15 +92,15 @@ export function createIntegratedTransport(patientId: string, game: GameDefinitio
     },
     submitSession: enqueue,
     submitMetrics: async (event: PerformanceEvent) => (await enqueue(event)).adjustment,
-    async exit() {
+    async exit(reason?: string) {
       if (saving) await saving;
-      if (!finished && latest) await enqueue({ ...(latest ?? {
+      if (!finished) await enqueue({ ...(latest ?? {
         game_id: game.key, difficulty: game.min_level, accuracy: 0, reaction_time_ms: 0,
         errors: 0, hints_used: 0, session_duration_sec: (Date.now() - Date.parse(startedAt)) / 1000,
         rounds_completed: 0, timestamp: new Date().toISOString(),
-      }), completed: false, early_exit: true });
+      }), fatigue_flags: reason ? [reason] : latest?.fatigue_flags, completed: false, early_exit: true });
     },
-    restart() { id = crypto.randomUUID(); startedAt = new Date().toISOString(); finished = false; latest = null; saving = null; },
+    restart() { id = crypto.randomUUID(); startedAt = new Date().toISOString(); finished = false; latest = null; saving = null; observedRounds = 0; observedErrors = 0; consecutiveErrorRounds = 0; },
   };
 }
 // Existing session API safely evaluates the persisted session. This boundary deliberately

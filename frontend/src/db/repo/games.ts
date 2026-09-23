@@ -157,12 +157,16 @@ export async function getDifficulty(
   const state = await db.difficultyStates
     .where({ patientId, gameKey: game.key })
     .first();
+  const profile = await getMeta("gamePatient");
+  const patient = profile ? JSON.parse(profile) as { id?: string; maxDifficultyLevel?: number } : null;
+  const cap = Math.min(game.max_level, state?.capLevel ?? game.max_level,
+    patient?.id === patientId ? patient.maxDifficultyLevel ?? game.max_level : game.max_level);
   return state
     ? {
-        level: state.level,
+        level: Math.min(state.level, cap),
         window: state.window as SessionSummary[],
         lockedByDoctor: state.lockedByDoctor,
-        capLevel: state.capLevel,
+        capLevel: cap < game.max_level ? cap : state.capLevel,
         minLevel: state.minLevel,
         maxLevel: state.maxLevel,
       }
@@ -170,7 +174,7 @@ export async function getDifficulty(
         level: game.min_level,
         window: [],
         lockedByDoctor: false,
-        capLevel: null,
+        capLevel: cap < game.max_level ? cap : null,
         minLevel: game.min_level,
         maxLevel: game.max_level,
       };

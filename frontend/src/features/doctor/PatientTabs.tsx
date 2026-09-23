@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 
 import { doctorApi } from "./api";
+import { CARE_TIMEZONE, dayInTimezone } from "../../db/reminders";
 
 const formText = (value: FormDataEntryValue | null): string =>
   typeof value === "string" ? value : "";
@@ -23,7 +24,7 @@ export function MetricsTab({ patientId }: { patientId: string }) {
         {row.mean_accuracy != null && <div aria-label={`${row.domain} mean accuracy chart`} className="mt-2 h-3 rounded bg-bg"><div className="h-3 rounded bg-primary" style={{ width: `${Math.round(row.mean_accuracy * 100)}%` }} /></div>}
       </article>)}</div>
       <table className="w-full"><thead><tr><th>Game</th><th>Level</th><th>Date</th></tr></thead><tbody>
-        {query.data.sessions?.map((row) => <tr key={row.id}><td>{row.game}</td><td>{row.level}</td><td>{new Date(row.ended_at).toLocaleDateString()}</td></tr>)}
+        {query.data.sessions?.map((row) => <tr key={row.id}><td>{row.game}</td><td>{row.level}</td><td>{new Date(row.ended_at).toLocaleDateString([], { timeZone: CARE_TIMEZONE })}</td></tr>)}
       </tbody></table>
     </>}
   </div>;
@@ -57,7 +58,7 @@ export function RoutineTab({ patientId }: { patientId: string }) {
   const assignments = useQuery({ queryKey: ["doctor", patientId, "assignments"], queryFn: () => doctorApi.assignments(patientId) });
   const games = useQuery({ queryKey: ["games"], queryFn: doctorApi.games });
   const assign = useMutation({ mutationFn: (body: object) => doctorApi.createAssignment(patientId, body), onSuccess: () => client.invalidateQueries({ queryKey: ["doctor", patientId, "assignments"] }) });
-  const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); mutation.mutate({ name: data.get("name"), dose: data.get("dose"), times: formText(data.get("times")).split(",").map((value) => value.trim()), instructions: data.get("instructions"), active: true, start_date: new Date().toISOString().slice(0, 10) }); };
+  const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); mutation.mutate({ name: data.get("name"), dose: data.get("dose"), times: formText(data.get("times")).split(",").map((value) => value.trim()), instructions: data.get("instructions"), active: true, start_date: dayInTimezone() }); };
   return <div className="space-y-4"><h3 className="font-bold">Medications</h3><form className="grid gap-2" onSubmit={submit}>
     <input name="name" aria-label="Medication" placeholder="Medication" required /><input name="dose" aria-label="Dose" placeholder="Dose" required />
     <input name="times" aria-label="08:00, 20:00" placeholder="08:00, 20:00" required /><textarea name="instructions" aria-label="Instructions" placeholder="Instructions" />
@@ -80,7 +81,7 @@ export function RoutineTab({ patientId }: { patientId: string }) {
       {games.isError && <p role="alert">Games could not be loaded.</p>}
       {assignments.isError && <p role="alert">Assignments could not be loaded.</p>}
     </form>
-    {assignments.data?.map((row) => <p key={row.id}><strong>{row.game_name}</strong> · {row.completion.done_this_week}/{row.completion.planned_this_week} this week · review {new Date(row.review_date).toLocaleDateString()}</p>)}
+    {assignments.data?.map((row) => <p key={row.id}><strong>{row.game_name}</strong> · {row.completion.done_this_week}/{row.completion.planned_this_week} this week · review {new Date(row.review_date).toLocaleDateString([], { timeZone: CARE_TIMEZONE })}</p>)}
   </div>;
 }
 
@@ -101,9 +102,14 @@ export function NotesTab({ patientId }: { patientId: string }) {
 }
 
 export function OverviewTab({ patientId }: { patientId: string }) {
+  const client = useQueryClient();
   const query = useQuery({ queryKey: ["doctor", patientId, "baseline"], queryFn: () => doctorApi.baseline(patientId) });
-  const mutation = useMutation({ mutationFn: (body: object) => doctorApi.saveBaseline(patientId, body) });
+  const mutation = useMutation({ mutationFn: (body: object) => doctorApi.saveBaseline(patientId, body), onSuccess: (baseline) => {
+    client.setQueryData(["doctor", patientId, "baseline"], baseline);
+    void client.invalidateQueries({ queryKey: ["doctor", patientId] });
+  } });
   return <form key={recordText(query.data?.updated_at)} className="grid gap-2" onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); mutation.mutate({ allergies: data.get("allergies"), diagnoses: data.get("diagnoses"), visual_limits: data.get("visual_limits"), motor_limits: data.get("motor_limits"), ideal_session_minutes: Number(data.get("ideal_session_minutes")) || null, max_difficulty_level: Number(data.get("max_difficulty_level")) || null }); }}>
+    <p>Ideal session minutes is advisory. Gameplay uses the separately configured session time limit.</p>
     <p>Baseline entered by doctor{recordText(query.data?.recorded_by_name) ? `: ${recordText(query.data?.recorded_by_name)}` : ""}</p>
     <textarea name="allergies" defaultValue={recordText(query.data?.allergies)} aria-label="Allergies" placeholder="Allergies" />
     <textarea name="diagnoses" defaultValue={recordText(query.data?.diagnoses)} aria-label="Clinical diagnosis (entered by doctor)" placeholder="Clinical diagnosis (entered by doctor)" />

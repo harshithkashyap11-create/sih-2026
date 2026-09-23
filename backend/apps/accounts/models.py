@@ -45,6 +45,11 @@ class User(AbstractUser):
             ("te", "Telugu"),
             ("mni", "Manipuri"),
             ("lus", "Mizo"),
+            ("brx", "Bodo"),
+            ("kha", "Khasi"),
+            ("grt", "Garo"),
+            ("ne", "Nepali"),
+            ("trp", "Kokborok"),
         ),
         default="en",
     )

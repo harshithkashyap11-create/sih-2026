@@ -60,8 +60,9 @@ def validate_metrics(game: GameDefinition, metrics: dict[str, Any]) -> None:
         and (
             isinstance(metrics[key], bool)
             or not isinstance(metrics[key], (int, float))
-            or not math.isfinite(metrics[key])
             or metrics[key] < 0
+            or metrics[key] > 2_147_483_647
+            or not math.isfinite(metrics[key])
         )
     )
     if missing or invalid:
@@ -223,6 +224,7 @@ def save_session(
             )
         if state.locked_by_doctor or metrics.get("fatigue_flags"):
             target = state.level
+        target = min(target, input_state.capLevel or game.max_level, game.max_level, 5)
         reason: Reason = (
             "promote" if target > state.level else "demote" if target < state.level else "hold"
         )
@@ -253,6 +255,15 @@ def save_session(
             "final_difficulty": target,
         }
         session.save(update_fields=["metrics", "updated_at"])
+    bounded_level = min(
+        result.state.level, input_state.capLevel or game.max_level, game.max_level, 5
+    )
+    if bounded_level != result.state.level:
+        result = replace(
+            result,
+            state=replace(result.state, level=bounded_level),
+            change=replace(result.change, toLevel=bounded_level, reasonCode="cap"),
+        )
     state.level, state.window = result.state.level, result.state.window
     state.save(update_fields=["level", "window", "updated_at"])
     change = None

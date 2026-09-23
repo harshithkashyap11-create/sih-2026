@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { caregiverApi, type CareAlert } from "../api";
+import { CARE_TIMEZONE } from "../../../db/reminders";
 
 function Evidence({ evidence }: { evidence: Record<string, unknown> }) {
   const reminders = Array.isArray(evidence.reminder_ids)
@@ -67,7 +68,7 @@ function AlertCard({
       <div className="flex justify-between gap-3">
         <h3 className="text-lg font-bold">{alert.title}</h3>
         <time dateTime={alert.triggered_at}>
-          {new Date(alert.triggered_at).toLocaleString()}
+          {new Date(alert.triggered_at).toLocaleString([], { timeZone: CARE_TIMEZONE })}
         </time>
       </div>
       <p className="my-2">{alert.explanation}</p>

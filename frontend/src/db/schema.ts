@@ -120,6 +120,8 @@ export interface CachedReminderResponse {
   respondedAt: string;
 }
 export interface CachedMedication {
+  start_date?: string | null;
+  end_date?: string | null;
   id: string;
   patientId: string;
   name: string;

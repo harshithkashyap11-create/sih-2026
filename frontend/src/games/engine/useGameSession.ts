@@ -61,11 +61,13 @@ export function useGameSession<R>(
   const start = useCallback(async () => {
     const storedDifficulty = await getDifficulty(patientId, game);
     const override = new URLSearchParams(window.location.search).get("level");
-    const level = override
-      ? Math.min(game.max_level, Math.max(game.min_level, Number(override)))
-      : sessionLevel(storedDifficulty, challengeMode);
+    const requested = Number(override);
+    const level = Math.min(storedDifficulty.capLevel ?? game.max_level, game.max_level,
+      override && Number.isFinite(requested) && !storedDifficulty.lockedByDoctor
+        ? Math.max(game.min_level, Math.round(requested))
+        : sessionLevel(storedDifficulty, challengeMode));
     const existing = guestMode ? null : await loadResume(patientId, module.key);
-    const value = existing ?? {
+    const value = existing ? { ...existing, level: Math.min(existing.level, storedDifficulty.capLevel ?? game.max_level, game.max_level) } : {
       gameKey: module.key,
       patientId,
       seed: crypto.randomUUID(),

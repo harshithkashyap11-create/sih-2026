@@ -629,11 +629,29 @@ components:
       - en
       - as
       - bn
+      - hi
+      - te
+      - mni
+      - lus
+      - brx
+      - kha
+      - grt
+      - ne
+      - trp
       type: string
       description: |-
         * `en` - English
         * `as` - Assamese
         * `bn` - Bengali
+        * `hi` - Hindi
+        * `te` - Telugu
+        * `mni` - Manipuri
+        * `lus` - Mizo
+        * `brx` - Bodo
+        * `kha` - Khasi
+        * `grt` - Garo
+        * `ne` - Nepali
+        * `trp` - Kokborok
     LockedResponse:
       type: object
       properties:

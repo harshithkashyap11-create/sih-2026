@@ -9,6 +9,11 @@ export const recognitionLocale = (language: VoiceLanguage): string =>
     te: "te-IN",
     mni: "mni-IN",
     lus: "lus-IN",
+    brx: "brx-IN",
+    kha: "kha-IN",
+    grt: "grt-IN",
+    ne: "ne-IN",
+    trp: "trp-IN",
   })[language];
 export interface SpeechToText {
   start(

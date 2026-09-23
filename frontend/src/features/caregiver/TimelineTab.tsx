@@ -46,7 +46,7 @@ export function TimelineTab({ patientId }: { patientId: string }) {
               className="rounded-card bg-surface p-4"
               key={`${event.kind}:${event.id}`}
             >
-              <time>{new Date(event.at).toLocaleString()}</time>
+              <time>{new Date(event.at).toLocaleString([], { timeZone: CARE_TIMEZONE })}</time>
               <p>
                 {event.kind.replaceAll("_", " ")} · {event.title}
               </p>
@@ -57,3 +57,4 @@ export function TimelineTab({ patientId }: { patientId: string }) {
     </section>
   );
 }
+import { CARE_TIMEZONE } from "../../db/reminders";

@@ -26,6 +26,14 @@ export function catalogErrors(catalog, english, language, fallbacks = []) {
 async function files(dir) { return (await Promise.all((await readdir(dir, { withFileTypes: true })).map((e) => e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]))).flat(); }
 const english = flatten(JSON.parse(await readFile(join(root, "src/shared/i18n/en.json"), "utf8")));
 const problems = [];
+const registry = await readFile(join(root, "src/games/registry.ts"), "utf8");
+const descriptionKeys = [...registry.matchAll(/descriptionKey: "([^"]+)"/g)].map((match) => match[1]);
+const legacy = registry.match(/const legacyModules = \[([\s\S]*?)\] as const;/)?.[1] ?? "";
+for (const name of legacy.match(/\b\w+\b/g) ?? []) {
+  const match = registry.match(new RegExp(`import \\{ ${name} \\} from "\\./modules/([^"]+)"`));
+  if (match && !["sequence_recall", "memory_match", "object_sorting"].includes(match[1])) descriptionKeys.push(`gameCatalog.${match[1]}.description`);
+}
+for (const key of descriptionKeys) if (!(key in english)) problems.push(`Catalogue: missing description ${key}`);
 const gameFallbacks = JSON.parse(await readFile(join(root, "src/shared/i18n/game-english-fallbacks.json"), "utf8"));
 for (const lang of ["en", "as", "bn", "hi"]) problems.push(...catalogErrors(flatten(JSON.parse(await readFile(join(root, `src/shared/i18n/${lang}.json`), "utf8"))), english, lang, gameFallbacks[lang] ?? []));
 const telugu = flatten(JSON.parse(await readFile(join(root, "src/shared/i18n/te.json"), "utf8")));
@@ -57,6 +65,9 @@ async function references(value, region) {
 const packs = JSON.parse(await readFile(join(root, "src/content/demo-packs.json"), "utf8"));
 for (const [region, pack] of Object.entries(packs)) { if (pack.region !== region) problems.push(`Invalid region reference ${region}`); await references(pack.items, region); }
 const review = JSON.parse(await readFile(join(root, "src/shared/i18n/review-status.json"), "utf8"));
-for (const lang of ["en", "as", "bn", "hi", "te", "mni", "lus"]) if (!review[lang]?.origin || !review[lang]?.nativeReview || !review[lang]?.clinicalReview) problems.push(`${lang}: missing review provenance`);
+const configuration = await readFile(join(root, "src/shared/i18n/index.ts"), "utf8");
+const supported = configuration.match(/supportedLanguages = \[([^\]]+)\]/)?.[1].match(/"([^"]+)"/g)?.map((language) => JSON.parse(language)) ?? [];
+for (const lang of supported) if (!review[lang]?.origin || !review[lang]?.nativeReview || !review[lang]?.clinicalReview) problems.push(`${lang}: missing review provenance`);
+if (!configuration.includes('fallbackLng: "en"')) problems.push("Catalogue checks require an explicit en default locale.");
 if (problems.length) { console.error(problems.join("\n")); process.exitCode = 1; }
 else console.log(`Locale catalogs, patient copy, interpolation, review provenance and content references pass (${Object.keys(english).length} keys).`);

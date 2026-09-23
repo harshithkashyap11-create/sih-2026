@@ -18,6 +18,8 @@
     "welcome": "A calm place for memories and daily support."
   },
   "auth": {
+    "previousDevicePin": "Previous device PIN",
+    "pinRecoveryHelp": "Your sign-in was accepted. To preserve saved records, enter the previous device PIN below, then enter your new PIN on the keypad. If you do not know the previous PIN, ask your caregiver for help or sign in on another device. Saved records have not been deleted.",
     "back": "Back",
     "emailOrPhone": "Email or phone",
     "password": "Password",
@@ -109,11 +111,14 @@
     }
   },
   "medicines": {
+    "askCaregiver": "Ask {{name}}",
     "title": "My medicines",
     "nextDose": "Next dose",
     "askPriya": "Ask Priya"
   },
   "memories": {
+    "photoUnavailable": "Photo unavailable. You can try again.",
+    "retryPhoto": "Retry photo",
     "title": "My memories",
     "loading": "One moment…",
     "empty": "Nothing here yet. Priya can add this for you.",
@@ -168,6 +173,9 @@
   },
   "games": {
     "title": "Games",
+    "catalogSummary": "{{count}} cognitive games",
+    "adaptiveSummary": "Adaptive difficulty (DDA) gently adjusts play using accuracy, response time, hints and rest signals. Clinician limits are always respected.",
+    "adaptiveBadge": "Adaptive difficulty",
     "challenge": "Looking for a challenge today?",
     "loading": "Getting the game ready…",
     "round": "Round {{current}} of {{total}}",
@@ -746,6 +754,35 @@
     "question": "{{name}} asks: Are you okay?",
     "okay": "I am okay",
     "help": "I need help"
+  },
+  "gameCatalog": {
+    "tea_garden_attention": {
+      "description": "Tap the tea leaves and avoid other objects."
+    },
+    "bihu_rhythm_recall": {
+      "description": "Listen to the rhythm, then tap it back."
+    },
+    "daily_life_sequencing": {
+      "description": "Put everyday activities in the right order."
+    },
+    "familiar_place_recall": {
+      "description": "Choose the familiar place shown in the picture."
+    },
+    "who_is_this": {
+      "description": "Look at the photo and choose who it is."
+    },
+    "word_pairs": {
+      "description": "Match words that belong together."
+    },
+    "festival_calendar": {
+      "description": "Match each festival with its season."
+    },
+    "sound_match": {
+      "description": "Listen and choose the matching sound."
+    },
+    "spot_the_change": {
+      "description": "Compare the pictures and find what changed."
+    }
   },
   "gameInstructions": {
     "hiddenCard": "Hidden card",

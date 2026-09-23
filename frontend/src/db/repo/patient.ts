@@ -1,6 +1,7 @@
 import { apiClient } from "../../api/client";
 import { activeProfile, db, getMeta, type CachedFamilyMember } from "../schema";
 import { isFakeOffline } from "../outbox";
+import { CARE_TIMEZONE, careTime } from "../reminders";
 
 export interface Orientation {
   greeting_key: "morning" | "afternoon" | "evening";
@@ -58,7 +59,12 @@ export class DexiePatientRepository implements PatientRepository {
         phone: item.phone,
         isEmergencyContact: item.is_emergency_contact,
       }));
-      await db.familyMembers.bulkPut(members);
+      await db.transaction("rw", db.familyMembers, async () => {
+        await db.familyMembers.where("patientId").equals(patientId).delete();
+        await db.familyMembers.bulkPut(members);
+      });
+      const { purgeUnreferencedMedia } = await import("../media");
+      await purgeUnreferencedMedia(patientId);
       return members.sort(
         (a, b) =>
           Number(Boolean(b.isEmergencyContact)) -
@@ -148,18 +154,20 @@ export class DexiePatientRepository implements PatientRepository {
       return {
         ...orientation,
         greeting_key:
-          now.getHours() < 12
+          Number(careTime(now).slice(0, 2)) < 12
             ? "morning"
-            : now.getHours() < 17
+            : Number(careTime(now).slice(0, 2)) < 17
               ? "afternoon"
               : "evening",
-        day: now.toLocaleDateString(undefined, { weekday: "long" }),
+        day: now.toLocaleDateString(undefined, { timeZone: CARE_TIMEZONE, weekday: "long" }),
         date: now.toLocaleDateString(undefined, {
+          timeZone: CARE_TIMEZONE,
           month: "long",
           day: "numeric",
           year: "numeric",
         }),
         time: now.toLocaleTimeString(undefined, {
+          timeZone: CARE_TIMEZONE,
           hour: "numeric",
           minute: "2-digit",
         }),

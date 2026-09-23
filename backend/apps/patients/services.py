@@ -32,12 +32,19 @@ def update_profile(
     *, actor: User, patient: PatientProfile, fields: dict[str, Any]
 ) -> PatientProfile:
     with transaction.atomic():
+        patient = PatientProfile.objects.select_for_update().get(pk=patient.pk)
         user_fields = fields.pop("user", {})
         changes = _changes(patient, fields)
         for name, value in fields.items():
             setattr(patient, name, value)
         if changes:
             patient.save(update_fields=[*changes, "updated_at"])
+            if "max_difficulty_level" in changes and patient.max_difficulty_level is not None:
+                from apps.games.models import DifficultyState
+
+                DifficultyState.objects.filter(
+                    patient=patient, level__gt=patient.max_difficulty_level
+                ).update(level=patient.max_difficulty_level)
             audit(actor, "update", patient, patient=patient, changes=changes)
         if user_fields:
             for name, value in user_fields.items():

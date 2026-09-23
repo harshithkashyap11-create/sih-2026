@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { GameSafetyContext } from './GameSafetyContext.js';
 import {
   applyAdjustment,
   buildGameMetrics,
@@ -27,8 +28,9 @@ export function useGameSession({
   onSessionEnd,
 }) {
   const client = ddaClient ?? getDDAClient();
+  const { maxDifficulty } = useContext(GameSafetyContext);
 
-  const [difficulty, setDifficulty] = useState(() => clampDifficulty(initialDifficulty));
+  const [difficulty, setDifficulty] = useState(() => Math.min(maxDifficulty, clampDifficulty(initialDifficulty)));
   const [rounds, setRounds] = useState([]);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,14 +92,14 @@ export function useGameSession({
     try { response = await client.submitRound(metrics); }
     catch { response = { adjustment: 0, source: 'offline' }; }
     busyRef.current = false;
-    const nextDifficulty = applyAdjustment(difficulty, response.adjustment);
+    const nextDifficulty = Math.min(maxDifficulty, applyAdjustment(difficulty, response.adjustment));
 
     setIsSubmitting(false);
     setLastAdjustment(response);
     setDifficulty(nextDifficulty);
 
     return { result, response, nextDifficulty, metrics };
-  }, [client, difficulty, gameId, hintsUsed, rounds, roundsPerSession]);
+  }, [client, difficulty, gameId, hintsUsed, rounds, roundsPerSession, maxDifficulty]);
 
   /** Ends the session and records the final event. Safe to call twice. */
   const endSession = useCallback(async ({ earlyExit = false } = {}) => {

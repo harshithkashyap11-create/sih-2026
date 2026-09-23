@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiClient } from "../../api/client";
+import { dayInTimezone } from "../../db/reminders";
 
 export function ReportsTab({
   patientId,
@@ -9,9 +10,9 @@ export function ReportsTab({
   clinical?: boolean;
 }) {
   const [start, setStart] = useState(() =>
-    new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10),
+    dayInTimezone(new Date(Date.now() - 29 * 86400000)),
   );
-  const [end, setEnd] = useState(() => new Date().toISOString().slice(0, 10));
+  const [end, setEnd] = useState(() => dayInTimezone());
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState(false);
   async function download(emergency: boolean) {
