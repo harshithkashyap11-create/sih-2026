@@ -35,30 +35,69 @@ export function RequireRole({
 export function ProLayout() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   useIdleLogout();
 
+  const isDoctor = user?.role === "doctor";
+  const homePath = isDoctor ? "/doctor" : "/caregiver";
+  const navItems = isDoctor
+    ? [{ label: "Dashboard", path: "/doctor" }]
+    : [{ label: "Dashboard", path: "/caregiver" }];
+
   return (
     <div className="pro-layout min-h-screen bg-bg text-text">
-      <header className="flex min-h-[64px] items-center justify-between bg-surface px-5">
-        <strong>{user?.display_name}</strong>
-        <button
-          className="min-h-[44px] px-3"
-          type="button"
-          onClick={() => void logout().then(() => void navigate("/"))}
-        >
-          {t("auth.logout")}
-        </button>
+      <header className="border-b border-primary/10 bg-surface px-5 shadow-sm">
+        <div className="mx-auto flex min-h-[72px] max-w-6xl items-center justify-between gap-4">
+          <button
+            className="text-left"
+            type="button"
+            onClick={() => void navigate(homePath)}
+          >
+            <span className="block text-xs font-bold uppercase tracking-[0.16em] text-muted">
+              Smārana care
+            </span>
+            <strong className="text-lg">{user?.display_name}</strong>
+          </button>
+          <div className="flex items-center gap-3">
+            <span className="hidden rounded-full bg-calm px-3 py-1 text-sm font-semibold text-primary sm:inline-flex">
+              {isDoctor ? "Doctor workspace" : "Caregiver workspace"}
+            </span>
+            <button
+              className="min-h-[44px] rounded-full border border-primary/20 px-4 text-sm font-semibold hover:bg-calm"
+              type="button"
+              onClick={() => void logout().then(() => void navigate("/"))}
+            >
+              {t("auth.logout")}
+            </button>
+          </div>
+        </div>
       </header>
-      <div className="mx-auto grid max-w-5xl gap-4 p-5 md:grid-cols-[12rem_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-6 p-5 md:grid-cols-[13rem_1fr] md:p-8">
         <nav
           aria-label={t("auth.navigation")}
-          className="rounded-card bg-surface p-4"
+          className="h-fit rounded-card border border-primary/10 bg-surface p-3 shadow-sm"
         >
-          {t("auth.dashboard")}
+          <p className="px-3 pb-2 text-xs font-bold uppercase tracking-[0.14em] text-muted">
+            Workspace
+          </p>
+          {navItems.map((item) => {
+            const active = location.pathname === item.path;
+            return (
+              <Link
+                className={`flex min-h-[48px] items-center rounded-xl px-3 font-semibold ${active ? "bg-primary text-primary-text" : "text-text hover:bg-calm"}`}
+                key={item.path}
+                to={item.path}
+                aria-current={active ? "page" : undefined}
+              >
+                <span aria-hidden="true" className="mr-3 text-lg">⌂</span>
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
-        <main>
+        <main className="min-w-0">
           <Outlet />
         </main>
       </div>
