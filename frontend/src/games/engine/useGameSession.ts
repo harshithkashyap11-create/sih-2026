@@ -2,14 +2,16 @@ import { useCalmStore } from "../../features/patient/confused/store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ContentPack } from "../../content/packs";
 import {
-  clearResume,
   getDifficulty,
-  loadResume,
   persistLocalResult,
-  saveResume,
   type GameDefinitionDto,
-  type ResumeState,
 } from "../../db/repo/games";
+import {
+  clearResume,
+  loadResume,
+  saveResume,
+  type ResumeState,
+} from "../../db/repo/gameResume";
 import type { CachedGameSession } from "../../db/schema";
 import { nextDifficulty, sessionLevel, type DifficultyStateData } from "../dda";
 import { type Answer, type GameModule } from "./types";
@@ -62,20 +64,32 @@ export function useGameSession<R>(
     const storedDifficulty = await getDifficulty(patientId, game);
     const override = new URLSearchParams(window.location.search).get("level");
     const requested = Number(override);
-    const level = Math.min(storedDifficulty.capLevel ?? game.max_level, game.max_level,
+    const level = Math.min(
+      storedDifficulty.capLevel ?? game.max_level,
+      game.max_level,
       override && Number.isFinite(requested) && !storedDifficulty.lockedByDoctor
         ? Math.max(game.min_level, Math.round(requested))
-        : sessionLevel(storedDifficulty, challengeMode));
+        : sessionLevel(storedDifficulty, challengeMode),
+    );
     const existing = guestMode ? null : await loadResume(patientId, module.key);
-    const value = existing ? { ...existing, level: Math.min(existing.level, storedDifficulty.capLevel ?? game.max_level, game.max_level) } : {
-      gameKey: module.key,
-      patientId,
-      seed: crypto.randomUUID(),
-      level,
-      roundIndex: 0,
-      startedAt: new Date().toISOString(),
-      metrics: newMetrics(),
-    };
+    const value = existing
+      ? {
+          ...existing,
+          level: Math.min(
+            existing.level,
+            storedDifficulty.capLevel ?? game.max_level,
+            game.max_level,
+          ),
+        }
+      : {
+          gameKey: module.key,
+          patientId,
+          seed: crypto.randomUUID(),
+          level,
+          roundIndex: 0,
+          startedAt: new Date().toISOString(),
+          metrics: newMetrics(),
+        };
     setDifficulty(storedDifficulty);
     setResumeState(value);
     roundStarted.current = Date.now();

@@ -1,36 +1,34 @@
 import { ConfusedMode } from "../../features/patient/confused/ConfusedMode";
 import { useCalmStore } from "../../features/patient/confused/store";
 import { SectionHeader } from "../../features/patient/walkthrough/SectionHeader";
-import type { PropsWithChildren } from "react";
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Link,
-  Navigate,
+  NavLink,
   Outlet,
   useLocation,
   useNavigate,
 } from "react-router-dom";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  Gamepad2,
+  HeartHandshake,
+  Home,
+  Images,
+  LogOut,
+  Settings,
+  Stethoscope,
+} from "lucide-react";
 
 import type { RoleEnum } from "../../api/generated/models";
 import { useAuthStore } from "../../features/auth/authStore";
 import { useIdleLogout } from "../../shared/hooks/useIdleLogout";
 import { useIdlePrompt } from "../../shared/hooks/useIdlePrompt";
-import { ConfirmDialog } from "../../shared/ui";
+import { ConfirmDialog, PageState } from "../../shared/ui";
 import { SosButton } from "../../features/patient/sos/SosButton";
-import { TalkButton } from "../../shared/ui/TalkButton";
 import { OfflineChip } from "../../shared/ui/OfflineChip";
-
-export function RequireRole({
-  allowed,
-  children,
-}: PropsWithChildren<{ allowed: RoleEnum[] }>) {
-  const role = useAuthStore((state) => state.role);
-  return role && allowed.includes(role) ? (
-    children
-  ) : (
-    <Navigate replace to="/" />
-  );
-}
 
 export function ProLayout() {
   const { t } = useTranslation();
@@ -43,62 +41,90 @@ export function ProLayout() {
   const isDoctor = user?.role === "doctor";
   const homePath = isDoctor ? "/doctor" : "/caregiver";
   const navItems = isDoctor
-    ? [{ label: "Dashboard", path: "/doctor" }]
-    : [{ label: "Dashboard", path: "/caregiver" }];
+    ? [{ label: t("auth.dashboard"), path: "/doctor" }]
+    : [{ label: t("auth.dashboard"), path: "/caregiver" }];
 
   return (
     <div className="pro-layout min-h-screen bg-bg text-text">
-      <header className="border-b border-primary/10 bg-surface px-5 shadow-sm">
-        <div className="mx-auto flex min-h-[72px] max-w-6xl items-center justify-between gap-4">
+      <a
+        className="sr-focusable rounded-control bg-primary px-4 py-3 font-bold text-primary-text"
+        href="#main-content"
+      >
+        {t("professional.skipMain")}
+      </a>
+      <header className="glass-surface sticky top-0 z-30 border-x-0 border-t-0 px-5">
+        <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-4">
           <button
-            className="text-left"
+            className="flex items-center gap-3 rounded-control text-left"
             type="button"
             onClick={() => void navigate(homePath)}
           >
-            <span className="block text-xs font-bold uppercase tracking-[0.16em] text-muted">
-              Smārana care
+            <span
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-text shadow-soft"
+              aria-hidden="true"
+            >
+              {isDoctor ? (
+                <Stethoscope className="h-6 w-6" />
+              ) : (
+                <HeartHandshake className="h-6 w-6" />
+              )}
             </span>
-            <strong className="text-lg">{user?.display_name}</strong>
+            <span>
+              <span className="block text-xs font-bold uppercase tracking-[0.16em] text-primary">
+                {t("professional.careBrand")}
+              </span>
+              <strong className="block text-lg leading-tight">
+                {user?.display_name}
+              </strong>
+            </span>
           </button>
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-full bg-calm px-3 py-1 text-sm font-semibold text-primary sm:inline-flex">
-              {isDoctor ? "Doctor workspace" : "Caregiver workspace"}
+            <span className="hidden rounded-pill bg-calm px-3 py-1 text-sm font-semibold text-primary sm:inline-flex">
+              {isDoctor
+                ? t("professional.doctorWorkspace")
+                : t("professional.caregiverWorkspace")}
             </span>
             <button
-              className="min-h-[44px] rounded-full border border-primary/20 px-4 text-sm font-semibold hover:bg-calm"
+              aria-label={t("auth.logout")}
+              className="flex min-h-[44px] items-center gap-2 rounded-pill border border-border bg-surface px-4 text-sm font-semibold hover:border-primary hover:bg-calm"
               type="button"
               onClick={() => void logout().then(() => void navigate("/"))}
             >
+              <LogOut aria-hidden="true" className="h-4 w-4" />
               {t("auth.logout")}
             </button>
           </div>
         </div>
       </header>
-      <div className="mx-auto grid max-w-6xl gap-6 p-5 md:grid-cols-[13rem_1fr] md:p-8">
+      <div className="mx-auto grid max-w-7xl gap-6 p-4 sm:p-6 md:grid-cols-[14rem_1fr] md:p-8">
         <nav
           aria-label={t("auth.navigation")}
-          className="h-fit rounded-card border border-primary/10 bg-surface p-3 shadow-sm"
+          className="h-fit rounded-card border border-border bg-surface p-3 shadow-soft md:sticky md:top-28"
         >
           <p className="px-3 pb-2 text-xs font-bold uppercase tracking-[0.14em] text-muted">
-            Workspace
+            {t("professional.workspace")}
           </p>
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
-                className={`flex min-h-[48px] items-center rounded-xl px-3 font-semibold ${active ? "bg-primary text-primary-text" : "text-text hover:bg-calm"}`}
+                className={`flex min-h-[48px] items-center rounded-control px-3 font-semibold ${active ? "bg-primary text-primary-text shadow-soft" : "text-text hover:bg-calm"}`}
                 key={item.path}
                 to={item.path}
                 aria-current={active ? "page" : undefined}
               >
-                <span aria-hidden="true" className="mr-3 text-lg">⌂</span>
+                <Home aria-hidden="true" className="mr-3 h-5 w-5" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
-        <main className="min-w-0">
-          <Outlet />
+        <main className="min-w-0" id="main-content" tabIndex={-1}>
+          <Suspense
+            fallback={<PageState title={t("health.loading")} tone="loading" />}
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>
@@ -110,15 +136,49 @@ export function PatientLayout() {
   const section = useLocation().pathname.split("/")[2] || "home";
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
   const { confirmPresence, isPromptOpen } = useIdlePrompt(30 * 60 * 1000);
-  const navItems = ["home", "play", "wellness", "family", "settings"] as const;
-  const navRoutes = [
-    "/patient",
-    "/patient/games",
-    "/patient/calm",
-    "/patient/people",
-    "/patient/settings",
+  const focusedTask =
+    /^\/patient\/games\/[^/]+$/.test(location.pathname) ||
+    location.pathname === "/patient/memories/quiz";
+  const isHome = location.pathname === "/patient";
+  const navItems = [
+    {
+      key: "home",
+      labelKey: "patient.nav.home",
+      route: "/patient",
+      icon: Home,
+      end: true,
+    },
+    {
+      key: "play",
+      labelKey: "patient.nav.play",
+      route: "/patient/games",
+      icon: Gamepad2,
+      end: false,
+    },
+    {
+      key: "memories",
+      labelKey: "home.tiles.memories",
+      route: "/patient/memories",
+      icon: Images,
+      end: false,
+    },
+    {
+      key: "routine",
+      labelKey: "home.tiles.routine",
+      route: "/patient/routine",
+      icon: CalendarCheck,
+      end: false,
+    },
+    {
+      key: "settings",
+      labelKey: "patient.nav.settings",
+      route: "/patient/settings",
+      icon: Settings,
+      end: false,
+    },
   ] as const;
 
   const leave = (): void => {
@@ -127,56 +187,80 @@ export function PatientLayout() {
 
   return (
     <div
-      className={`mx-auto flex min-h-screen max-w-[720px] flex-col patient-layout bg-bg text-text ${calmMode ? "calm-mode" : ""}`}
+      className={`patient-layout mx-auto flex min-h-screen max-w-[820px] flex-col bg-bg text-text ${focusedTask ? "patient-task-layout" : ""} ${calmMode ? "calm-mode" : ""}`}
     >
-      <header className="sticky top-0 z-10 grid min-h-touch grid-cols-[1fr_auto_1fr] items-center gap-2 bg-surface px-3 shadow-card">
-        <button
-          className="min-h-touch justify-self-start px-2 font-bold"
-          type="button"
-          onClick={() => void navigate(-1)}
-        >
-          ← {t("auth.back")}
-        </button>
-        <strong className="text-center">{t("patient.title")}</strong>
-        <div className="flex items-center">
-          <TalkButton />
-        </div>
-        <OfflineChip />
-      </header>
-      <main className="flex-1 p-4 pb-24">
-        <SectionHeader key={section} section={section} />
-        <ConfusedMode />
-        <Link className="block min-h-touch p-4" to="/patient/sleep">
-          {t("wellness.title")}
-        </Link>
-        <Outlet />
-      </main>
-      <nav
-        aria-label={t("patient.navigation")}
-        className="fixed inset-x-0 bottom-0 z-10 mx-auto grid min-h-touch max-w-[720px] grid-cols-5 border-t border-primary/20 bg-surface"
+      <a
+        className="sr-focusable rounded-control bg-primary px-4 py-3 font-bold text-primary-text"
+        href="#patient-content"
       >
-        {navItems.map((item, index) => (
+        {t("professional.skipMain")}
+      </a>
+      <header className="glass-surface sticky top-0 z-30 grid min-h-touch grid-cols-[1fr_auto_1fr] items-center gap-2 border-x-0 border-t-0 px-3 sm:px-5">
+        {!isHome ? (
           <button
-            className="min-h-touch px-1 text-sm font-bold"
-            key={item}
+            aria-label={t("auth.back")}
+            className="flex min-h-touch items-center gap-2 justify-self-start rounded-control px-2 font-bold hover:bg-calm"
             type="button"
-            onClick={() => void navigate(navRoutes[index] ?? "/patient")}
+            onClick={() => void navigate(-1)}
           >
-            <span aria-hidden="true" className="block text-2xl">
-              {item === "home"
-                ? "⌂"
-                : item === "play"
-                  ? "▶"
-                  : item === "wellness"
-                    ? "♥"
-                    : item === "family"
-                      ? "♧"
-                      : "⚙"}
-            </span>
-            {t(`patient.nav.${item}`)}
+            <ArrowLeft aria-hidden="true" className="h-6 w-6" />
+            <span className="hidden sm:inline">{t("auth.back")}</span>
           </button>
-        ))}
-      </nav>
+        ) : (
+          <span />
+        )}
+        <Link
+          className="flex items-center gap-2 rounded-control px-2 py-1"
+          to="/patient"
+        >
+          <span
+            aria-hidden="true"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-text"
+          >
+            <HeartHandshake className="h-5 w-5" />
+          </span>
+          <strong className="text-center">{t("patient.title")}</strong>
+        </Link>
+        <div className="justify-self-end">
+          <OfflineChip />
+        </div>
+      </header>
+      <main
+        className="flex-1 p-4 pb-24 sm:p-6"
+        id="patient-content"
+        tabIndex={-1}
+      >
+        {!isHome && !focusedTask ? (
+          <SectionHeader key={section} section={section} />
+        ) : null}
+        <ConfusedMode />
+        <Suspense
+          fallback={<PageState title={t("health.loading")} tone="loading" />}
+        >
+          <Outlet />
+        </Suspense>
+      </main>
+      {!focusedTask ? (
+        <nav
+          aria-label={t("patient.navigation")}
+          className="glass-surface fixed inset-x-2 bottom-2 z-20 mx-auto grid min-h-touch max-w-[790px] grid-cols-5 overflow-hidden rounded-card p-1.5"
+        >
+          {navItems.map(({ end, icon: Icon, key, labelKey, route }) => (
+            <NavLink
+              aria-label={t(labelKey)}
+              className={({ isActive }) =>
+                `flex min-h-touch flex-col items-center justify-center gap-1 rounded-control px-1 text-sm font-bold ${isActive ? "bg-primary text-primary-text shadow-soft" : "text-muted hover:bg-calm hover:text-text"}`
+              }
+              end={end}
+              key={key}
+              to={route}
+            >
+              <Icon aria-hidden="true" className="h-6 w-6" />
+              <span>{t(labelKey)}</span>
+            </NavLink>
+          ))}
+        </nav>
+      ) : null}
       <ConfirmDialog
         noLabel={t("patient.idle.no")}
         open={isPromptOpen}

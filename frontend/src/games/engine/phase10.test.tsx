@@ -1,4 +1,6 @@
-vi.mock("../../db/media", () => ({ privateMediaUrl: (url: string) => Promise.resolve(url) }));
+vi.mock("../../db/media", () => ({
+  privateMediaUrl: (url: string) => Promise.resolve(url),
+}));
 import {
   act,
   fireEvent,
@@ -29,10 +31,12 @@ vi.mock("../../db/repo/games", () => ({
       minLevel: 1,
       maxLevel: 10,
     }),
+  persistLocalResult: mocks.persist,
+}));
+vi.mock("../../db/repo/gameResume", () => ({
   loadResume: () => Promise.resolve(null),
   saveResume: mocks.save,
   clearResume: mocks.clear,
-  persistLocalResult: mocks.persist,
 }));
 vi.mock("../../db/repo/patient", () => ({
   patientRepository: {

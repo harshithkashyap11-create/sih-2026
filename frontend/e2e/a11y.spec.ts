@@ -200,19 +200,22 @@ async function inspect(page: Page, label: string) {
       if (!nav || !sos) return true;
       const navBounds = nav.getBoundingClientRect();
       if (sos.getBoundingClientRect().bottom > navBounds.top) return false;
-      return Array.from(nav.querySelectorAll("button")).every((button) =>
-        Array.from(button.childNodes)
-          .filter(
-            (node) =>
-              node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
+      return Array.from(nav.querySelectorAll<HTMLElement>("a, button")).every(
+        (control) => {
+          const controlBounds = control.getBoundingClientRect();
+          if (
+            controlBounds.left < navBounds.left ||
+            controlBounds.right > navBounds.right
           )
-          .every((node) => {
-            const range = document.createRange();
-            range.selectNodeContents(node);
-            return Array.from(range.getClientRects()).every(
+            return false;
+          return Array.from(
+            control.querySelectorAll<HTMLElement>("span"),
+          ).every((label) =>
+            Array.from(label.getClientRects()).every(
               (rect) => rect.left >= 0 && rect.right <= window.innerWidth,
-            );
-          }),
+            ),
+          );
+        },
       );
     }),
     `${label}: navigation labels fit and do not overlap SOS`,

@@ -17,11 +17,17 @@ import { VoiceLoop, type VoiceState } from "../../voice/loop";
 import { TurnManager, type VoiceTurn } from "../../voice/turn";
 import { normalizeTranscript } from "../../voice/safety";
 import { cancelSpeech } from "../hooks/useTts";
+import { useDialogFocus } from "../hooks/useDialogFocus";
+import { motion, useReducedMotion } from "motion/react";
+import { LoaderCircle, Mic, Send, Volume2, WifiOff, X } from "lucide-react";
+import { motionTokens, springs } from "../motion/tokens";
 
 export function TalkButton({
   onRecognised,
+  presentation = "compact",
 }: {
   onRecognised?: (text: string) => void;
+  presentation?: "compact" | "hero";
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -40,6 +46,8 @@ export function TalkButton({
   const [error, setError] = useState("");
   const [request, setRequest] = useState("");
   const [open, setOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
   const [confirmation, setConfirmation] = useState<{
     message: string;
     action: () => void | Promise<void>;
@@ -71,6 +79,11 @@ export function TalkButton({
     },
     [speech],
   );
+  const closePanel = useCallback(() => {
+    cancel();
+    setOpen(false);
+  }, [cancel]);
+  useDialogFocus(panelRef, open && !confirmation, closePanel);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -295,71 +308,161 @@ export function TalkButton({
   };
   return (
     <>
-      <button
+      <motion.button
         aria-pressed={listening}
-        className={`min-h-touch justify-self-end rounded-card px-2 font-bold ${listening ? "animate-pulse bg-primary text-white" : ""}`}
+        className={
+          presentation === "hero"
+            ? `group flex min-h-[9rem] w-full items-center gap-5 overflow-hidden rounded-card border border-primary/20 bg-primary p-5 text-left text-primary-text shadow-card sm:p-6 ${listening ? "ring-4 ring-accent/40" : "hover:-translate-y-0.5 hover:shadow-lift"}`
+            : `min-h-touch justify-self-end rounded-control px-3 font-bold ${listening ? "bg-primary text-primary-text" : ""}`
+        }
         type="button"
         onClick={toggle}
+        whileTap={
+          reduceMotion ? undefined : { scale: motionTokens.scale.press }
+        }
+        transition={springs.snappy}
       >
-        ◖)) {t("patient.talk")}
-      </button>
-      {open ? (
-        <div
-          className="fixed inset-x-4 bottom-24 z-40 mx-auto max-w-lg rounded-card bg-surface p-5 shadow-card"
-          role="status"
+        <span
+          aria-hidden="true"
+          className={`${presentation === "hero" ? "flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary-text/10 ring-1 ring-primary-text/25" : "mr-2 inline-flex align-middle"} ${listening ? "voice-breathe" : ""}`}
         >
-          <strong>
-            {listening
-              ? t("voice.listening")
-              : phase === "processing"
-                ? t("voice.thinking")
-                : phase === "speaking"
-                  ? t("voice.speaking")
-                  : t("voice.heard")}
-          </strong>
-          {!navigator.onLine ? <p>{t("voice.offline")}</p> : null}
-          <p className="text-sm">{t("voice.providerNotice")}</p>
-          {text ? <p>{text}</p> : null}
-          {response ? <p>{response}</p> : null}
-          {source === "CLOUD_LLM" ? <p>{t("voice.onlineAssistant")}</p> : null}
-          {error ? <p role="alert">{error}</p> : null}
-          <form
-            className="mt-3 flex flex-wrap gap-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const entry = new FormData(event.currentTarget).get("request");
-              const submitted = typeof entry === "string" ? entry.trim() : "";
-              if (!submitted) return;
-              loop.current?.stop();
-              speech.stop();
-              void handle(submitted);
-              setRequest("");
-            }}
+          <Mic className={presentation === "hero" ? "h-9 w-9" : "h-5 w-5"} />
+        </span>
+        {presentation === "hero" ? (
+          <span className="min-w-0">
+            <span className="block text-sm font-bold uppercase tracking-[0.15em] text-primary-text">
+              {t("voice.assistant")}
+            </span>
+            <span className="mt-1 block text-balance text-2xl font-bold sm:text-3xl">
+              {t("patient.talk")}
+            </span>
+            <span className="mt-2 block text-base font-medium text-primary-text">
+              {listening ? t("voice.listening") : t("app.welcome")}
+            </span>
+          </span>
+        ) : (
+          t("patient.talk")
+        )}
+      </motion.button>
+      {open && !confirmation ? (
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-text/35 p-3 sm:items-center sm:p-6">
+          <div
+            aria-labelledby="voice-panel-title"
+            aria-modal="true"
+            className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-card border border-border bg-surface shadow-lift"
+            ref={panelRef}
+            role="dialog"
           >
-            <input
-              name="request"
-              aria-label={t("voice.request")}
-              className="min-h-touch min-w-0 flex-1 rounded-card border p-2"
-              value={request}
-              onChange={(event) => setRequest(event.target.value)}
-            />
-            <button
-              className="min-h-touch rounded-card bg-primary px-4 text-primaryText"
-              type="submit"
-            >
-              {t("voice.send")}
-            </button>
-          </form>
-          <button
-            className="mt-2 min-h-touch underline"
-            type="button"
-            onClick={() => {
-              cancel();
-              setOpen(false);
-            }}
-          >
-            {t("auth.back")}
-          </button>
+            <div className="flex items-center justify-between gap-3 border-b border-border bg-calm px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-text ${listening ? "voice-breathe" : ""}`}
+                  aria-hidden="true"
+                >
+                  {phase === "processing" ? (
+                    <LoaderCircle className="h-6 w-6 animate-spin" />
+                  ) : phase === "speaking" ? (
+                    <Volume2 className="h-6 w-6" />
+                  ) : (
+                    <Mic className="h-6 w-6" />
+                  )}
+                </span>
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-[0.12em] text-primary">
+                    {t("voice.assistant")}
+                  </p>
+                  <strong
+                    className="text-xl"
+                    id="voice-panel-title"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {listening
+                      ? t("voice.listening")
+                      : phase === "processing"
+                        ? t("voice.thinking")
+                        : phase === "speaking"
+                          ? t("voice.speaking")
+                          : t("voice.heard")}
+                  </strong>
+                </div>
+              </div>
+              <button
+                aria-label={t("calm.stop")}
+                className="flex min-h-touch min-w-touch items-center justify-center rounded-full hover:bg-surface"
+                type="button"
+                onClick={closePanel}
+              >
+                <X aria-hidden="true" className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4 p-5">
+              {!navigator.onLine ? (
+                <p className="flex items-center gap-2 rounded-control bg-accent-light p-3 font-bold">
+                  <WifiOff aria-hidden="true" className="h-5 w-5" />
+                  {t("voice.offline")}
+                </p>
+              ) : null}
+              {text ? (
+                <div className="rounded-card bg-surface-muted p-4">
+                  <p className="text-sm font-bold text-muted">
+                    {t("voice.heard")}
+                  </p>
+                  <p className="mt-1">{text}</p>
+                </div>
+              ) : null}
+              {response ? (
+                <div className="rounded-card bg-calm p-4">
+                  <p>{response}</p>
+                </div>
+              ) : null}
+              {source === "CLOUD_LLM" ? (
+                <p className="text-sm text-muted">
+                  {t("voice.onlineAssistant")}
+                </p>
+              ) : null}
+              {error ? (
+                <p
+                  className="rounded-control bg-danger/10 p-3 font-semibold text-danger"
+                  role="alert"
+                >
+                  {error}
+                </p>
+              ) : null}
+              <form
+                className="flex flex-col gap-2 sm:flex-row"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const entry = new FormData(event.currentTarget).get(
+                    "request",
+                  );
+                  const submitted =
+                    typeof entry === "string" ? entry.trim() : "";
+                  if (!submitted) return;
+                  loop.current?.stop();
+                  speech.stop();
+                  void handle(submitted);
+                  setRequest("");
+                }}
+              >
+                <input
+                  name="request"
+                  aria-label={t("voice.request")}
+                  className="min-h-touch min-w-0 flex-1 rounded-control border border-border bg-surface px-4 text-text"
+                  value={request}
+                  onChange={(event) => setRequest(event.target.value)}
+                />
+                <button
+                  className="flex min-h-touch items-center justify-center gap-2 rounded-control bg-primary px-5 font-bold text-primary-text"
+                  type="submit"
+                >
+                  <Send aria-hidden="true" className="h-5 w-5" />
+                  {t("voice.send")}
+                </button>
+              </form>
+              <p className="text-sm text-muted">{t("voice.providerNotice")}</p>
+            </div>
+          </div>
         </div>
       ) : null}
       <ConfirmDialog

@@ -67,7 +67,7 @@ export function CheckInCard() {
     }
   }
   return (
-    <Card className="space-y-3">
+    <Card className="space-y-4 border-l-4 border-l-lavender">
       <h2 className="text-2xl font-bold">
         {t("checkin.question", { name: row.requested_by })}
       </h2>

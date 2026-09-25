@@ -1,9 +1,27 @@
 {
-  "experimentalServices": {
+  "services": {
     "frontend": {
-      "entrypoint": "frontend",
-      "routePrefix": "/",
-      "includeFiles": ["shared/**"]
+      "root": "frontend",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ],
+  "build": {
+    "env": {
+      "VITE_FRONTEND_URL": "/",
+      "VITE_DEMO_MODE": "1"
     }
   }
 }

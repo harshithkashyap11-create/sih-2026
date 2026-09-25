@@ -1,31 +1,151 @@
+/* eslint-disable react-refresh/only-export-components -- lazy route components live with the router configuration. */
+import { createElement, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
-import { RegisterPage } from "../features/auth/RegisterPage";
-
-import { AdminPortalPage } from "../features/auth/AdminPortalPage";
-import { LandingPage } from "../features/auth/LandingPage";
-import { ProfessionalLoginPage } from "../features/auth/ProfessionalLoginPage";
-import { PatientLoginPage } from "../features/auth/PatientLoginPage";
-import { PatientLayout, ProLayout, RequireRole } from "./layouts/RoleLayouts";
-import { PatientHomePage } from "../features/patient/home/PatientHomePage";
-import { CalmPage } from "../features/patient/calm/CalmPage";
+import { RequireRole } from "./layouts/RequireRole";
 import { Navigate } from "react-router-dom";
-import { RoutinePage } from "../features/patient/routine/RoutinePage";
-import { MedicinesPage } from "../features/patient/medicines/MedicinesPage";
-import { ProgressPage } from "../features/patient/progress/ProgressPage";
-import { MemoriesPage } from "../features/patient/memories/MemoriesPage";
-import { MemoryDetailPage } from "../features/patient/memories/MemoryDetailPage";
-import { MemoryQuizPage } from "../features/patient/memories/quiz/MemoryQuizPage";
-import { PeoplePage } from "../features/patient/people/PeoplePage";
-import { PracticePage } from "../features/caregiver/PracticePage";
-import { CaregiverPortal } from "../features/caregiver/CaregiverPortal";
-import { GamesPage } from "../features/patient/games/GamesPage";
-import { GamePage } from "../features/patient/games/GamePage";
-import { DoctorDashboard } from "../features/doctor/DoctorDashboard";
-import { DoctorPatientPage } from "../features/doctor/DoctorPatientPage";
-import { WellnessPage } from "../features/patient/sleep/WellnessPage";
-import { SettingsPage } from "../features/patient/settings/SettingsPage";
+
+const LandingPage = lazy(() =>
+  import("../features/auth/LandingPage").then((module) => ({
+    default: module.LandingPage,
+  })),
+);
+const PatientLayout = lazy(() =>
+  import("./layouts/RoleLayouts").then((module) => ({
+    default: module.PatientLayout,
+  })),
+);
+const ProLayout = lazy(() =>
+  import("./layouts/RoleLayouts").then((module) => ({
+    default: module.ProLayout,
+  })),
+);
+const RegisterPage = lazy(() =>
+  import("../features/auth/RegisterPage").then((module) => ({
+    default: module.RegisterPage,
+  })),
+);
+const AdminPortalPage = lazy(() =>
+  import("../features/auth/AdminPortalPage").then((module) => ({
+    default: module.AdminPortalPage,
+  })),
+);
+const ProfessionalLoginPage = lazy(() =>
+  import("../features/auth/ProfessionalLoginPage").then((module) => ({
+    default: module.ProfessionalLoginPage,
+  })),
+);
+const PatientLoginPage = lazy(() =>
+  import("../features/auth/PatientLoginPage").then((module) => ({
+    default: module.PatientLoginPage,
+  })),
+);
+const PatientHomePage = lazy(() =>
+  import("../features/patient/home/PatientHomePage").then((module) => ({
+    default: module.PatientHomePage,
+  })),
+);
+const CalmPage = lazy(() =>
+  import("../features/patient/calm/CalmPage").then((module) => ({
+    default: module.CalmPage,
+  })),
+);
+const RoutinePage = lazy(() =>
+  import("../features/patient/routine/RoutinePage").then((module) => ({
+    default: module.RoutinePage,
+  })),
+);
+const MedicinesPage = lazy(() =>
+  import("../features/patient/medicines/MedicinesPage").then((module) => ({
+    default: module.MedicinesPage,
+  })),
+);
+const ProgressPage = lazy(() =>
+  import("../features/patient/progress/ProgressPage").then((module) => ({
+    default: module.ProgressPage,
+  })),
+);
+const MemoriesPage = lazy(() =>
+  import("../features/patient/memories/MemoriesPage").then((module) => ({
+    default: module.MemoriesPage,
+  })),
+);
+const MemoryDetailPage = lazy(() =>
+  import("../features/patient/memories/MemoryDetailPage").then((module) => ({
+    default: module.MemoryDetailPage,
+  })),
+);
+const MemoryQuizPage = lazy(() =>
+  import("../features/patient/memories/quiz/MemoryQuizPage").then((module) => ({
+    default: module.MemoryQuizPage,
+  })),
+);
+const PeoplePage = lazy(() =>
+  import("../features/patient/people/PeoplePage").then((module) => ({
+    default: module.PeoplePage,
+  })),
+);
+const PracticePage = lazy(() =>
+  import("../features/caregiver/PracticePage").then((module) => ({
+    default: module.PracticePage,
+  })),
+);
+const CaregiverPortal = lazy(() =>
+  import("../features/caregiver/CaregiverPortal").then((module) => ({
+    default: module.CaregiverPortal,
+  })),
+);
+const GamesPage = lazy(() =>
+  import("../features/patient/games/GamesPage").then((module) => ({
+    default: module.GamesPage,
+  })),
+);
+const GamePage = lazy(() =>
+  import("../features/patient/games/GamePage").then((module) => ({
+    default: module.GamePage,
+  })),
+);
+const DoctorDashboard = lazy(() =>
+  import("../features/doctor/DoctorDashboard").then((module) => ({
+    default: module.DoctorDashboard,
+  })),
+);
+const DoctorPatientPage = lazy(() =>
+  import("../features/doctor/DoctorPatientPage").then((module) => ({
+    default: module.DoctorPatientPage,
+  })),
+);
+const WellnessPage = lazy(() =>
+  import("../features/patient/sleep/WellnessPage").then((module) => ({
+    default: module.WellnessPage,
+  })),
+);
+const developmentRoutes = import.meta.env.DEV
+  ? [
+      {
+        path: "/design-system",
+        element: createElement(
+          lazy(() => {
+            const modulePath = [
+              "/src",
+              "shared/theme",
+              "DesignSystemPage.tsx",
+            ].join("/");
+            return import(/* @vite-ignore */ modulePath).then((module) => ({
+              default: module.DesignSystemPage,
+            }));
+          }),
+        ),
+      },
+    ]
+  : [];
+const SettingsPage = lazy(() =>
+  import("../features/patient/settings/SettingsPage").then((module) => ({
+    default: module.SettingsPage,
+  })),
+);
 
 export const router = createBrowserRouter([
+  ...developmentRoutes,
   { path: "/register", element: <RegisterPage /> },
   { path: "/login/user", element: <ProfessionalLoginPage role="patient" /> },
   {

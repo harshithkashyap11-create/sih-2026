@@ -1,0 +1,99 @@
+{
+  "color": {
+    "brand": "#28785D",
+    "brandSoft": "#DDEFE5",
+    "accent": "#F39A55",
+    "accentSoft": "#FBE5D1",
+    "memory": "#E9E3F6",
+    "canvas": "#FAF8F3",
+    "surface": "#FFFFFF",
+    "text": "#16243D",
+    "muted": "#637083",
+    "danger": "#A23E48",
+    "border": "#D9DFD9",
+    "chartMemory": "#28785D",
+    "chartAttention": "#E7833E",
+    "chartRecall": "#4382C3",
+    "chartPattern": "#8064B2"
+  },
+  "darkMode": {
+    "background": "#111C20",
+    "surface": "#1B2A2D",
+    "surfaceMuted": "#223438",
+    "text": "#F6F3EA",
+    "muted": "#BCC8C8",
+    "primary": "#85CDB2",
+    "accent": "#F6AC70",
+    "border": "#3B4D50",
+    "danger": "#FF9AA5",
+    "chartMemory": "#91D4B5",
+    "chartAttention": "#F6AC70",
+    "chartRecall": "#8FC4DC",
+    "chartPattern": "#C1A9E8"
+  },
+  "spacing": {
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px"
+  },
+  "radius": {
+    "small": "8px",
+    "medium": "14px",
+    "control": "14px",
+    "card": "22px",
+    "large": "24px",
+    "extraLarge": "30px",
+    "pill": "999px"
+  },
+  "elevation": {
+    "0": "none",
+    "1": "0 2px 12px rgb(22 36 61 / 0.06)",
+    "2": "0 12px 32px rgb(22 36 61 / 0.08)",
+    "3": "0 20px 52px rgb(22 36 61 / 0.14)",
+    "interactiveHover": "0 8px 18px rgb(29 91 68 / 0.16)"
+  },
+  "typography": {
+    "display": "Georgia, Times New Roman, serif",
+    "body": "Aptos, Inter, ui-sans-serif, system-ui, sans-serif",
+    "lineHeight": {
+      "display": 1.08,
+      "heading": 1.2,
+      "body": 1.55,
+      "bodyLarge": 1.65
+    },
+    "weight": {
+      "regular": 400,
+      "medium": 600,
+      "bold": 700
+    },
+    "bodyStartPx": 20,
+    "professionalStartPx": 16,
+    "patientScale": [1, 1.2, 1.4]
+  },
+  "touchTarget": {
+    "patient": "64px",
+    "professional": "44px"
+  },
+  "motionMs": {
+    "instant": 80,
+    "fast": 160,
+    "normal": 240,
+    "slow": 360
+  },
+  "breakpointsPx": {
+    "mobile": 480,
+    "tablet": 768,
+    "laptop": 1024,
+    "desktop": 1280,
+    "largeDesktop": 1536
+  },
+  "easing": {
+    "calm": "cubic-bezier(0.22, 1, 0.36, 1)"
+  }
+}

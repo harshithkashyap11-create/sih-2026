@@ -15,6 +15,8 @@ import {
   loadLatestResume,
   type ResumeState,
 } from "../../../games/engine/resume";
+import { Brain, Clock3, Gamepad2, MapPin, Play, Sparkles } from "lucide-react";
+import { PageState, StatusBadge } from "../../../shared/ui";
 
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamesPage() {
@@ -32,7 +34,10 @@ export function GamesPage() {
     void Promise.all([listGames(), loadLatestResume(), currentPatient()])
       .then(async ([items, interrupted, patient]) => {
         setRegion(patient.region);
-        const history = await db.gameSessions.where("patientId").equals(patient.id).toArray();
+        const history = await db.gameSessions
+          .where("patientId")
+          .equals(patient.id)
+          .toArray();
         setDaily(selectDailyGames(games, history).map((game) => game.key));
         setDefinitions(items);
         setResume(interrupted);
@@ -52,14 +57,23 @@ export function GamesPage() {
       })
       .finally(() => setLoading(false));
   }, []);
-  if (loading) return <p>{t("games.loadingList")}</p>;
+  if (loading)
+    return <PageState title={t("games.loadingList")} tone="loading" />;
   const visibleDefinitions = definitions.filter((item) =>
     games.some((game) => game.enabled && game.key === item.key),
   );
   return (
-    <section>
-      <h1 className="mb-5 text-3xl font-bold">{t("games.title")}</h1>
-      <div className="mb-5 rounded-card border-2 border-primary bg-primary/10 p-5">
+    <section className="space-y-6">
+      <header>
+        <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.13em] text-primary">
+          <Brain aria-hidden="true" className="h-4 w-4" />
+          {t("games.adaptiveBadge")}
+        </p>
+        <h1 className="mt-1 text-3xl font-bold sm:text-4xl">
+          {t("games.title")}
+        </h1>
+      </header>
+      <div className="rounded-card border border-primary/20 bg-calm p-5">
         <p className="text-xl font-bold">
           {t("games.catalogSummary", { count: visibleDefinitions.length })}
         </p>
@@ -72,17 +86,20 @@ export function GamesPage() {
       )}
       {resume && (
         <Link
-          className="mb-5 block min-h-touch rounded-card bg-success/20 p-5 text-xl font-bold"
+          className="group flex min-h-touch items-center justify-between gap-4 rounded-card border border-success/20 bg-calm p-5 text-xl font-bold shadow-soft hover:-translate-y-0.5 hover:shadow-card"
           to={`/patient/games/${resume.gameKey}`}
         >
-          <span className="block text-sm font-normal">
-            {t("games.resumeTitle")}
+          <span>
+            <span className="block text-sm font-normal text-muted">
+              {t("games.resumeTitle")}
+            </span>
+            {games.find((item) => item.key === resume.gameKey)?.name ??
+              t("games.continue")}
           </span>
-          {games.find((item) => item.key === resume.gameKey)?.name ??
-            t("games.continue")}
+          <Play aria-hidden="true" className="h-7 w-7 text-primary" />
         </Link>
       )}
-      <label className="mb-6 flex min-h-touch items-center gap-4 rounded-card bg-surface p-4 text-xl font-bold">
+      <label className="flex min-h-touch items-center gap-4 rounded-card border border-border bg-surface p-4 text-xl font-bold shadow-soft">
         <input
           checked={challenge}
           className="h-7 w-7"
@@ -94,48 +111,100 @@ export function GamesPage() {
         />
         {t("games.challenge")}
       </label>
-      <section className="mb-6" aria-label={t("games.dailyTitle")}>
+      <section aria-label={t("games.dailyTitle")}>
         <h2 className="mb-3 text-2xl font-bold">{t("games.dailyTitle")}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
-          {daily.filter((key) => definitions.some((game) => game.key === key)).map((key) => {
-            const entry = games.find((game) => game.key === key)!;
-            return <Link key={key} className="min-h-touch rounded-card border-2 border-primary p-4" to={entry.route}>{t(entry.nameKey, { defaultValue: entry.name })}</Link>;
-          })}
+          {daily
+            .filter((key) => definitions.some((game) => game.key === key))
+            .map((key) => {
+              const entry = games.find((game) => game.key === key)!;
+              return (
+                <Link
+                  key={key}
+                  className="flex min-h-touch items-center gap-3 rounded-card border border-primary/30 bg-surface p-4 font-bold shadow-soft hover:border-primary hover:bg-calm"
+                  to={entry.route}
+                >
+                  <Sparkles
+                    aria-hidden="true"
+                    className="h-5 w-5 text-accent"
+                  />
+                  {t(entry.nameKey, { defaultValue: entry.name })}
+                </Link>
+              );
+            })}
         </div>
       </section>
       <div className="grid gap-4 sm:grid-cols-2">
         {visibleDefinitions.map((game) => {
           const entry = games.find((item) => item.key === game.key)!;
           return (
-            <div className="rounded-card bg-surface p-3" key={game.key}>
+            <article
+              className="flex flex-col rounded-card border border-border bg-surface p-5 shadow-soft transition duration-fast hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card"
+              key={game.key}
+            >
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <span
+                  aria-hidden="true"
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl bg-calm text-primary"
+                >
+                  <Gamepad2 className="h-6 w-6" />
+                </span>
+                <FavouriteButton kind="game" id={game.key} />
+              </div>
               <Link
-                className="block min-h-touch rounded-card border-2 border-primary p-5 text-xl font-bold"
+                className="group flex flex-1 flex-col rounded-control"
                 to={`/patient/games/${game.key}`}
               >
-                <span aria-hidden="true" className="mr-2">{entry.icon}</span>
-                <span>{gameLabel(game.key, game.name, region)}</span>
-                <span className="mt-2 block text-base font-normal">
+                <span className="text-xl font-bold">
+                  {gameLabel(game.key, game.name, region)}
+                </span>
+                <span className="mt-2 block flex-1 text-base font-normal text-muted">
                   {t(entry.descriptionKey, { defaultValue: game.name })}
                 </span>
-                <span className="mt-3 inline-flex rounded-full bg-primary/15 px-3 py-1 text-sm font-bold">
-                  {t("games.adaptiveBadge")}
+                <span className="mt-4 flex flex-wrap gap-2">
+                  <StatusBadge tone="success">
+                    {t("games.adaptiveBadge")}
+                  </StatusBadge>
+                  {game.cognitive_domains[0] ? (
+                    <StatusBadge tone="info">
+                      {t(`games.domains.${game.cognitive_domains[0]}`, {
+                        defaultValue: game.cognitive_domains[0],
+                      })}
+                    </StatusBadge>
+                  ) : null}
+                  {game.is_regional ? (
+                    <StatusBadge tone="neutral">
+                      <MapPin aria-hidden="true" className="mr-1 h-3.5 w-3.5" />
+                      {t("games.regional")}
+                    </StatusBadge>
+                  ) : null}
                 </span>
-                <span className="mt-2 block text-base font-normal">
-                  {t("games.duration", { minutes: entry.estimatedDurationMin })}
-                </span>
-                {game.is_regional && (
-                  <span className="mt-2 inline-flex rounded-full bg-success/20 px-3 py-1 text-sm font-normal">
-                    {t("games.regional")}
+                <span className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4 font-bold text-primary">
+                  <span className="inline-flex items-center gap-2 text-sm font-normal text-muted">
+                    <Clock3 aria-hidden="true" className="h-4 w-4" />
+                    {t("games.duration", {
+                      minutes: entry.estimatedDurationMin,
+                    })}
                   </span>
-                )}
+                  <span className="inline-flex items-center gap-1">
+                    {t("games.continue")}
+                    <Play aria-hidden="true" className="h-4 w-4" />
+                  </span>
+                </span>
               </Link>
-              <Link className="inline-flex min-h-touch items-center p-3" to={`/patient/games/${game.key}?practice=true`}>{t("games.practice")}</Link>
-              <FavouriteButton kind="game" id={game.key} />
-            </div>
+              <Link
+                className="mt-2 inline-flex min-h-[44px] items-center justify-center rounded-control bg-surface-muted px-3 text-sm font-bold hover:bg-calm"
+                to={`/patient/games/${game.key}?practice=true`}
+              >
+                {t("games.practice")}
+              </Link>
+            </article>
           );
         })}
       </div>
-      {visibleDefinitions.length === 0 && <p>{t("games.empty")}</p>}
+      {visibleDefinitions.length === 0 && (
+        <PageState title={t("games.empty")} />
+      )}
     </section>
   );
 }

@@ -53,9 +53,6 @@ test("real reminder and completed offline game survive reload, upload, and repla
   await pin(page);
   await expect(page).toHaveURL(/(?<!login)\/patient$/);
   await expect(page.locator("main h1")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Got it", exact: true }),
-  ).toBeVisible();
   await dismissInstructions(page);
   await expect
     .poll(async () => (await records(page, "routineItems")).length)

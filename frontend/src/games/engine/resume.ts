@@ -6,4 +6,4 @@ export {
   resumeKey,
   saveResume,
   type ResumeState,
-} from "../../db/repo/games";
+} from "../../db/repo/gameResume";

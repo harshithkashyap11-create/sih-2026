@@ -1,4 +1,6 @@
-vi.mock("../../../db/media", () => ({ privateMediaUrl: (url: string) => Promise.resolve(url) }));
+vi.mock("../../../db/media", () => ({
+  privateMediaUrl: (url: string) => Promise.resolve(url),
+}));
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
@@ -46,21 +48,22 @@ function renderHome(orientation: Orientation) {
   return renderWithProviders(<PatientHomePage />, { repos: { patient } });
 }
 
-test("renders the next activity, family photo, and seven implemented tiles", async () => {
+test("renders the voice-first home, next activity, family photo, and seven destinations", async () => {
   renderHome(base);
   expect(await screen.findByText("Morning tea")).toBeVisible();
   expect(screen.getByRole("img", { name: "Mina" })).toBeVisible();
-  expect(
-    screen.getAllByRole("button").map((button) => button.textContent),
-  ).toEqual([
-    "◈Games",
-    "✚Medicines",
-    "▧Memories",
-    "≈Calm",
-    "♧My people",
-    "★Progress",
-    "☑Today's routine",
-  ]);
+  expect(screen.getByRole("button", { name: /Talk/ })).toBeVisible();
+  for (const label of [
+    "Games",
+    "Memories",
+    "Today's routine",
+    "Medicines",
+    "Calm",
+    "My people",
+    "Progress",
+  ]) {
+    expect(screen.getByRole("button", { name: label })).toBeVisible();
+  }
 });
 
 test("uses friendly copy when there is no next activity", async () => {

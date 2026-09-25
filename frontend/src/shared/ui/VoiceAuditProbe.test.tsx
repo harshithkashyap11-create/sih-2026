@@ -43,7 +43,7 @@ it("closing aborts delayed work and no stale action executes", async () => {
   await submit(user, "What is memory?");
   await waitFor(() => expect(routeWithFallback).toHaveBeenCalledOnce());
   const signal = vi.mocked(routeWithFallback).mock.calls[0]?.[2];
-  await user.click(screen.getByRole("button", { name: "Back" }));
+  await user.click(screen.getByRole("button", { name: "Stop" }));
   expect(signal?.aborted).toBe(true);
   await act(async () => {
     resolve();
@@ -146,6 +146,6 @@ it("closing cancels active browser synthesis", async () => {
   await submit(user, "Show my progress");
   await waitFor(() => expect(synthesis.speak).toHaveBeenCalledOnce());
   const before = synthesis.cancel.mock.calls.length;
-  await user.click(screen.getByRole("button", { name: "Back" }));
+  await user.click(screen.getByRole("button", { name: "Stop" }));
   expect(synthesis.cancel.mock.calls.length).toBeGreaterThan(before);
 });

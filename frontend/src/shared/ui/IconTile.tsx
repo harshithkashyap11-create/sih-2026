@@ -17,11 +17,11 @@ export function IconTile({
 }: IconTileProps) {
   return (
     <button
-      className={`min-h-touch flex w-full items-center gap-4 rounded-card border-2 border-primary bg-surface px-5 py-3 text-left font-bold text-text ${className}`}
+      className={`group min-h-touch flex w-full items-center gap-4 rounded-card border border-border bg-surface px-5 py-4 text-left font-bold text-text shadow-soft transition duration-fast hover:-translate-y-0.5 hover:border-primary hover:shadow-card ${className}`}
       type={type}
       {...props}
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center text-[2rem] text-primary">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-calm text-[1.7rem] text-primary transition duration-fast group-hover:bg-primary group-hover:text-primary-text">
         {icon}
       </span>
       <span>{label}</span>

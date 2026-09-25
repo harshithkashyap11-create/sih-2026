@@ -77,7 +77,7 @@ test("switching patient updates the URL and today shows status chips", async () 
     { route: "/caregiver/p1/today" },
   );
   expect(await screen.findByText("Morning tablet")).toBeInTheDocument();
-  expect(screen.getByText("taken")).toBeInTheDocument();
+  expect(screen.getByText("Taken", { selector: "span" })).toBeInTheDocument();
   expect(screen.getByText("Pending on device: Yes")).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Patient"), {
     target: { value: "p2" },

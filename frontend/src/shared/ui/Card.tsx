@@ -6,11 +6,11 @@ export function Card({
   ...props
 }: PropsWithChildren<HTMLAttributes<HTMLElement>>) {
   return (
-    <section
-      className={`rounded-card border border-primary/20 bg-surface p-5 shadow-card ${className}`}
+    <div
+      className={`rounded-card border border-border bg-surface p-5 shadow-soft ${className}`}
       {...props}
     >
       {children}
-    </section>
+    </div>
   );
 }

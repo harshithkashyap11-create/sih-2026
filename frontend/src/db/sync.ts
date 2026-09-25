@@ -336,7 +336,11 @@ async function runSync(): Promise<boolean> {
     );
     if (!sameAccount() || pull.patient_id !== patientId) return false;
     await applyPull(pull.records, patientId);
-    if ((pull.records.deleted ?? []).some((row) => ["memories", "family_members"].includes(String(row.model)))) {
+    if (
+      (pull.records.deleted ?? []).some((row) =>
+        ["memories", "family_members"].includes(String(row.model)),
+      )
+    ) {
       const { purgeUnreferencedMedia } = await import("./media");
       await purgeUnreferencedMedia(patientId);
     }
@@ -374,6 +378,7 @@ export function installSyncTriggers(): () => void {
   window.addEventListener("online", run);
   document.addEventListener("visibilitychange", run);
   const timer = window.setInterval(run, 300_000);
+  run();
   return () => {
     db.outbox.hook("creating").unsubscribe(afterWrite);
     window.removeEventListener("smarana:session-ready", sessionReady);

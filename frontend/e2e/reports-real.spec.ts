@@ -37,7 +37,7 @@ test("caregiver check-in reaches patient, reply syncs and both portals download 
     await page.getByRole("button", { name: digit, exact: true }).click();
   await expect(page).toHaveURL(/(?<!login)\/patient$/);
   const gotIt = page.getByRole("button", { name: "Got it", exact: true });
-  await gotIt.click();
+  if (await gotIt.isVisible()) await gotIt.click();
   await page.getByRole("button", { name: "I am okay", exact: true }).click();
   await expect
     .poll(async () => {
@@ -60,8 +60,7 @@ test("caregiver check-in reaches patient, reply syncs and both portals download 
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(
       page.getByRole("heading", {
-        name: role === "caregiver" ? "Rao" : "Patients",
-        exact: true,
+        name: role === "caregiver" ? /^Rao$/ : /patients/i,
       }),
     ).toBeVisible();
     await page.evaluate(

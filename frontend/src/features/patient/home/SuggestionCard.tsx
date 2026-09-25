@@ -65,15 +65,25 @@ export function SuggestionCard() {
   if (!value) return null;
   return (
     <Link
-      className="block min-h-touch rounded-card bg-calm p-5 text-2xl font-bold"
+      className="group block min-h-touch rounded-card border border-primary/20 bg-calm p-5 text-xl font-bold shadow-soft hover:-translate-y-0.5 hover:shadow-card"
       to={
         value.id === "calm"
           ? "/patient/calm"
           : `/patient/${value.kind === "game" ? "games" : "memories"}/${value.id}`
       }
     >
-      {t("newGames.suggestion")}
-      <span className="block">{value.title}</span>
+      <span className="text-sm uppercase tracking-[0.12em] text-primary">
+        {t("newGames.suggestion")}
+      </span>
+      <span className="mt-1 block text-2xl">
+        {value.title}{" "}
+        <span
+          aria-hidden="true"
+          className="transition duration-fast group-hover:translate-x-1"
+        >
+          →
+        </span>
+      </span>
     </Link>
   );
 }

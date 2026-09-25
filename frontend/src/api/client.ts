@@ -1,6 +1,8 @@
 export type ErrorType<Error> = Error;
 export type BodyType<BodyData> = BodyData;
 
+import { demoApiResponse } from "../demo/demoApi";
+
 type RefreshAccessToken = () => Promise<string | null>;
 
 export type ApiClientOptions = RequestInit & {
@@ -60,7 +62,9 @@ async function request<T>(
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
-  const response = await fetch(url, { ...fetchOptions, headers });
+  const response =
+    demoApiResponse(url, fetchOptions, headers) ??
+    (await fetch(url, { ...fetchOptions, headers }));
 
   if (response.status === 401 && canRefresh && refreshAccessToken) {
     const refreshedToken = await refreshAccessToken();

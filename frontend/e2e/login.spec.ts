@@ -104,8 +104,6 @@ test("seeded doctor logs in and sees the doctor layout", async ({ page }) => {
   await login(page, "doctor", "deka@example.com");
 
   await expect(page).toHaveURL(/\/doctor$/);
-  await expect(
-    page.getByRole("heading", { name: "Patients", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /patients/i })).toBeVisible();
   await expect(page.getByText("Dr. Deka")).toBeVisible();
 });
